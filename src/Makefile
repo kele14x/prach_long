@@ -8,11 +8,12 @@ VERILOG_SOURCES += $(PWD)/prach_hb1_ch.sv
 VERILOG_SOURCES += $(PWD)/prach_hb2_ch.sv
 VERILOG_SOURCES += $(PWD)/prach_hb3.sv
 VERILOG_SOURCES += $(PWD)/prach_hb4.sv
+VERILOG_SOURCES += $(PWD)/prach_hb5.sv
 VERILOG_SOURCES += $(PWD)/prach_mixer.sv
 VERILOG_SOURCES += $(PWD)/prach_nco.sv
 
-TOPLEVEL ?= prach_hb4
+TOPLEVEL ?= prach_hb5
 
-MODULE ?= test_prach_hb4
+MODULE ?= test_prach_hb5
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
