@@ -5,7 +5,7 @@ close all;
 
 %%
 % Sampling frequency
-Fs = 61.44e6;
+Fs = 30.72e6;
 % Signal Bandwidth
 Bw = 12*12*15e3;
 
