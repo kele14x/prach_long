@@ -23,6 +23,7 @@ module cmult #(
     output var               err_ovf
 );
 
+  localparam int Latency = 4;
   localparam int SignExp = SHIFT + P_WIDTH - A_WIDTH - B_WIDTH - 1;
 
   logic signed [A_WIDTH-1:0] ar_d1;
