@@ -1,0 +1,6 @@
+quartus/
+questa/
+
+*.bak
+*.log
+*~
