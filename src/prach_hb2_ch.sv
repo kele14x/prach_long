@@ -2,7 +2,7 @@
 //
 `default_nettype none
 
-module prach_hb1_ch (
+module prach_hb2_ch (
     input var         clk,
     input var         rst_n,
     //
@@ -18,12 +18,13 @@ module prach_hb1_ch (
     output var        sync_out
 );
 
-  localparam int NumChannel = 16;
+  localparam int NumChannel = 32;
+  localparam int NumChannelUsed = 24;
   localparam int NumUniqCoe = 2;
-  localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'd4134, 18'd36901};
+  localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'd4249, 18'd37013};
 
   localparam int Latency = 6;
-  localparam int Delay = 49;
+  localparam int Delay = 73;
 
   logic [15:0] xp1[Delay];
   logic [15:0] xp2[Delay];
@@ -57,16 +58,20 @@ module prach_hb1_ch (
   // Data delay line
 
   always_ff @(posedge clk) begin
-    xp1[0] <= din_dp1;
-    for (int i = 1; i < Delay; i++) begin
-      xp1[i] <= xp1[i-1];
+    if (din_dv) begin
+      xp1[0] <= din_dp1;
+      for (int i = 1; i < Delay; i++) begin
+        xp1[i] <= xp1[i-1];
+      end
     end
   end
 
   always_ff @(posedge clk) begin
-    xp2[0] <= din_dp2;
-    for (int i = 1; i < Delay; i++) begin
-      xp2[i] <= xp2[i-1];
+    if (din_dv) begin
+      xp2[0] <= din_dp2;
+      for (int i = 1; i < Delay; i++) begin
+        xp2[i] <= xp2[i-1];
+      end
     end
   end
 
@@ -76,7 +81,7 @@ module prach_hb1_ch (
     ay1 <= xp2[0];
     ay2 <= ay1;
     ay3 <= ay2;
-    az1 <= xp2[48];
+    az1 <= xp2[72];
     az2 <= az1;
     az3 <= az2;
   end
@@ -92,10 +97,10 @@ module prach_hb1_ch (
   // DSP2
 
   always_ff @(posedge clk) begin
-    by1 <= xp2[16];
+    by1 <= xp2[24];
     by2 <= by1;
     by3 <= by2;
-    bz1 <= xp2[32];
+    bz1 <= xp2[48];
     bz2 <= bz1;
     bz3 <= bz2;
   end
@@ -113,7 +118,7 @@ module prach_hb1_ch (
   end
 
   always_ff @(posedge clk) begin
-    dq <= result[32:17] + $signed(xp1[36]) / 2;
+    dq <= result[32:17] + $signed(xp1[52]) / 2;
   end
 
   assign dout_dq = dq;

@@ -1,6 +1,15 @@
+# Tools
+__pycache__/
 quartus/
 questa/
+sim_build/
 
 *.bak
 *.log
 *~
+
+# vsim
+modelsim.ini
+results.xml
+transcript
+vsim.wlf
