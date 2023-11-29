@@ -4,6 +4,7 @@ quartus/
 questa/
 sim_build/
 
+*.asv
 *.bak
 *.log
 *~
