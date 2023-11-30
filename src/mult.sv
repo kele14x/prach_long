@@ -45,7 +45,7 @@ module mult #(
   end
 
   always_ff @(posedge clk) begin
-    mult = a_d3 * b_d3 + Rng;
+    mult <= a_d3 * b_d3 + Rng;
   end
 
   generate

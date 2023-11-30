@@ -64,10 +64,16 @@ module prach_nco (
     end
   end
 
-  // LUT
+  // LUT, fi(1, 16, 14)
 
   initial begin
-    $readmemh("prach_nco_sin_lut.hex", sin_lut);
+    for (int i = 0; i < 1024; i++) begin
+      if (i < 768) begin
+        sin_lut[i] = int'($sin(3.1415926535 * 2 * i / 768) * 2 ** 14);
+      end else begin
+        sin_lut[i] = '0;
+      end
+    end
   end
 
   assign cos_addr_pre = phase_add(acc[chn], PhasePi2);
