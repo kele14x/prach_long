@@ -53,7 +53,7 @@ async def sample_of_frame(dut):
 
 
 @cocotb.test()
-async def test_prach_ditfft3(dut):
+async def test_prach_ditff2(dut):
     cocotb.start_soon(Clock(dut.clk, 1, units="ns").start())
     await reset(dut)
     cocotb.start_soon(drive_frame(dut))

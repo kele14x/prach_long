@@ -4,6 +4,9 @@ from cocotb.clock import Clock
 
 import random
 
+NUM_FFT_STAGE = 2
+NUM_FFT_LENGTH = 3 * 2 ** (NUM_FFT_STAGE - 1)
+
 
 async def reset(dut):
     dut.rst_n.value = 0
@@ -22,13 +25,13 @@ async def reset(dut):
 async def drive_frame(dut):
     clkedge = RisingEdge(dut.clk)
 
-    for i in range(12):
+    for i in range(NUM_FFT_LENGTH):
         if i == 0:
             dut.sync_in.value = 1
         else:
             dut.sync_in.value = 0
         dut.din_dr.value = random.randint(-10, 10)
-        dut.din_di.value = 0
+        dut.din_di.value = random.randint(-10, 10)
         dut.din_dv.value = 1
         await clkedge
 
@@ -42,18 +45,21 @@ async def sample_of_frame(dut):
     i = 0
     clkedge = RisingEdge(dut.clk)
 
-    while i < 3:
+    while i < NUM_FFT_LENGTH:
         await clkedge
-        if dut.dout_dv.value == 1:
+        if dut.dout_dv.value.is_resolvable and dut.dout_dv.value == 1:
             i = i + 1
-            if dut.dout_dr.value.is_resolvable:
-                yield dut.dout_dr.value.signed_integer
+            if dut.dout_dr.value.is_resolvable and dut.dout_di.value.is_resolvable:
+                yield (
+                    dut.dout_dr.value.signed_integer,
+                    dut.dout_di.value.signed_integer,
+                )
             else:
                 yield float("nan")
 
 
 @cocotb.test()
-async def test_prach_ditfft3(dut):
+async def test_prach_ditff2(dut):
     cocotb.start_soon(Clock(dut.clk, 1, units="ns").start())
     await reset(dut)
     cocotb.start_soon(drive_frame(dut))

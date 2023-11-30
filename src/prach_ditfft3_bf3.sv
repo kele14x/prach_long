@@ -29,7 +29,7 @@ module prach_ditfft3_bf3 (
       cnt <= 0;
     end else if (sync_in) begin
       cnt <= 1;
-    end else if (din_dv) begin
+    end else if (cnt > 0) begin
       cnt <= cnt == 2 ? 0 : cnt + 1;
     end
   end

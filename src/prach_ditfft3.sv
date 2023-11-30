@@ -18,6 +18,7 @@ module prach_ditfft3 (
 );
 
   localparam int NumFftPoints = 3;
+  localparam int Latency = 10;
 
   logic [17:0] s0_dr;
   logic [17:0] s0_di;
