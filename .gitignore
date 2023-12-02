@@ -1,5 +1,6 @@
 # Tools
 __pycache__/
+prj/
 quartus/
 questa/
 sim_build/

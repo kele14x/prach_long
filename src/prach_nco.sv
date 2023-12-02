@@ -119,7 +119,7 @@ module prach_nco (
   delay #(
       .WIDTH(10),
       .DELAY(Latency)
-  ) u_delay_ctrl (
+  ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
       .din  ({sync_in, din_dv, din_chn}),

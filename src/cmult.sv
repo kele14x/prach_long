@@ -25,6 +25,7 @@ module cmult #(
 
   localparam int Latency = 4;
   localparam int SignExp = SHIFT + P_WIDTH - A_WIDTH - B_WIDTH - 1;
+  localparam logic signed [A_WIDTH+B_WIDTH:0] Rng = SHIFT > 0 ? 1 << (SHIFT - 1) : 0;
 
   logic signed [A_WIDTH-1:0] ar_d1;
   logic signed [A_WIDTH-1:0] ar_d2;
@@ -76,8 +77,8 @@ module cmult #(
   end
 
   always_ff @(posedge clk) begin
-    pr_int <= mrr - mri;
-    pi_int <= mir + mii;
+    pr_int <= mrr - mri + Rng;
+    pi_int <= mir + mii + Rng;
   end
 
   generate

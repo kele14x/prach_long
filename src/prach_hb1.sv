@@ -12,15 +12,15 @@ module prach_hb1 (
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
-    output var [31:0] dout_dq,
+    output var [15:0] dout_dq [3],
     output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
 );
 
-  logic       dout_dv_s;
-  logic [7:0] dout_chn_s;
-  logic       sync_out_s;
+  logic       dout_dv_s [3];
+  logic [7:0] dout_chn_s[3];
+  logic       sync_out_s[3];
 
   generate
     for (genvar i = 0; i < 3; i++) begin : g_parallel_channel
@@ -42,7 +42,7 @@ module prach_hb1 (
     end
   endgenerate
 
-  assign dout_dv  = dout_dv[0];
+  assign dout_dv  = dout_dv_s[0];
   assign dout_chn = dout_chn_s[0];
   assign sync_out = sync_out_s[0];
 

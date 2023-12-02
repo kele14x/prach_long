@@ -6,12 +6,14 @@ module prach_mixer (
     input var         clk,
     input var         rst_n,
     //
-    input var  [31:0] din_dq   [3],
+    input var  [15:0] din_dr   [3],
+    input var  [15:0] din_di   [3],
     input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
-    output var [31:0] dout_dq  [3],
+    output var [15:0] dout_dr  [3],
+    output var [15:0] dout_di  [3],
     output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out,
@@ -28,12 +30,13 @@ module prach_mixer (
   logic signed [15:0] cos     [3];
   logic signed [15:0] sin     [3];
 
-  logic        [31:0] din_dq_d[3];
+  logic        [15:0] din_dr_d[3];
+  logic        [15:0] din_di_d[3];
 
   delay #(
       .WIDTH(10),
       .DELAY(Latency)
-  ) u_dv_delay (
+  ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
       .din  ({sync_in, din_dv, din_chn}),
@@ -69,8 +72,8 @@ module prach_mixer (
       ) u_dq_delay (
           .clk  (clk),
           .rst_n(1'b1),
-          .din  (din_dq[i]),
-          .dout (din_dq_d[i])
+          .din  ({din_di[i], din_dr[i]}),
+          .dout ({din_di_d[i], din_dr_d[i]})
       );
 
       cmult #(
@@ -82,14 +85,14 @@ module prach_mixer (
           .clk    (clk),
           .rst_n  (rst_n),
           //
-          .ar     (din_dq_d[i][15:0]),
-          .ai     (din_dq_d[i][31:16]),
+          .ar     (din_dr_d[i]),
+          .ai     (din_di_d[i]),
           //
           .br     (cos[i]),
           .bi     (sin[i]),
           //
-          .pr     (dout_dq[i][15:0]),
-          .pi     (dout_dq[i][31:16]),
+          .pr     (dout_dr[i]),
+          .pi     (dout_di[i]),
           //
           .err_ovf()
       );
