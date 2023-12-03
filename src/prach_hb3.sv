@@ -21,7 +21,10 @@ module prach_hb3 (
   localparam int NumChannel = 64;
   localparam int NumChannelUsed = 48;
   localparam int NumUniqCoe = 2;
+  // fi(1, 18, 17)
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'sd4750, 18'd37456};
+
+  localparam logic signed [35:0] Rng = 1 << 16;
 
   localparam int Latency = 6;
   localparam int Delay1 = 53;
@@ -54,7 +57,7 @@ module prach_hb3 (
 
   logic signed [35:0] result;
 
-  logic signed [15:0] dq;
+  logic signed [35:0] dq;
 
   // Data delay line
 
@@ -115,14 +118,14 @@ module prach_hb3 (
   end
 
   always_ff @(posedge clk) begin
-    result <= amult + bmult;
+    result <= amult + bmult + Rng;
   end
 
   always_ff @(posedge clk) begin
-    dq <= $signed(result[32:17]) + $signed(xp1[52]) / 2;
+    dq <= result + $signed({xp1[52], 16'b0});
   end
 
-  assign dout_dq = dq;
+  assign dout_dq = dq[32:17];
 
   delay #(
       .WIDTH(10),

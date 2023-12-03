@@ -23,6 +23,8 @@ module prach_hb1_ch (
   // fi(1, 18, 17)
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'd4134, 18'd36901};
 
+  localparam logic signed [35:0] Rng = 1 << 16;
+
   localparam int Latency = 6;
   localparam int Delay1 = 21;
   localparam int Delay2 = 49;
@@ -54,7 +56,7 @@ module prach_hb1_ch (
 
   logic signed [35:0] result;
 
-  logic signed [15:0] dq;
+  logic signed [35:0] dq;
 
   // Data delay line
 
@@ -111,14 +113,14 @@ module prach_hb1_ch (
   end
 
   always_ff @(posedge clk) begin
-    result <= amult + bmult;
+    result <= amult + bmult + Rng;
   end
 
   always_ff @(posedge clk) begin
-    dq <= $signed(result[32:17]) + $signed(xp1[20]) / 2;
+    dq <= result + $signed({xp1[20], 16'b0});
   end
 
-  assign dout_dq = dq;
+  assign dout_dq = dq[32:17];
 
   delay #(
       .WIDTH(10),

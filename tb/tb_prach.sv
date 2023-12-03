@@ -4,7 +4,7 @@
 
 module tb_prach ();
 
-  localparam int Tc = 0;
+  localparam int Tc = 1;
   localparam int TvLength = 30720;
 
   // DUT signals
@@ -244,33 +244,8 @@ module tb_prach ();
     $finish();
   end
 
-  initial begin
-    fd = $fopen("hb1_out.txt", "w");
-    if (!fd) begin
-      $fatal("Could not open file");
-      $finish();
-    end
-
-    // Wait sync
-    forever begin
-      @(posedge clk_dsp);
-      if (DUT.u_ddc.hb3_sync_out) break;
-    end
-
-    forever begin
-      if (DUT.u_ddc.hb3_dout_dv == 1'b1) begin
-        if (DUT.u_ddc.hb3_dout_chn == 0) begin  // I
-          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb3_dout_dq));
-        end else if (DUT.u_ddc.hb3_dout_chn == 8) begin  // Q
-          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb3_dout_dq));
-        end
-      end
-      @(posedge clk_dsp);
-    end
-  end
-
 //  initial begin
-//    fd = $fopen("test_out.txt", "w");
+//    fd = $fopen("hb1_out.txt", "w");
 //    if (!fd) begin
 //      $fatal("Could not open file");
 //      $finish();
@@ -279,20 +254,45 @@ module tb_prach ();
 //    // Wait sync
 //    forever begin
 //      @(posedge clk_dsp);
-//      if (DUT.u_ddc.hb5_sync_out) break;
+//      if (DUT.u_ddc.hb3_sync_out) break;
 //    end
 
 //    forever begin
-//      if (DUT.u_ddc.hb5_dout_dv == 1'b1) begin
-//        if (DUT.u_ddc.hb5_dout_chn == 0) begin  // I
-//          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb5_dout_dq));
-//        end else if (DUT.u_ddc.hb5_dout_chn == 8) begin  // Q
-//          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb5_dout_dq));
+//      if (DUT.u_ddc.hb3_dout_dv == 1'b1) begin
+//        if (DUT.u_ddc.hb3_dout_chn == 0) begin  // I
+//          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb3_dout_dq));
+//        end else if (DUT.u_ddc.hb3_dout_chn == 8) begin  // Q
+//          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb3_dout_dq));
 //        end
 //      end
 //      @(posedge clk_dsp);
 //    end
 //  end
+
+  initial begin
+    fd = $fopen("test_out.txt", "w");
+    if (!fd) begin
+      $fatal("Could not open file");
+      $finish();
+    end
+
+    // Wait sync
+    forever begin
+      @(posedge clk_dsp);
+      if (DUT.u_ddc.hb5_sync_out) break;
+    end
+
+    forever begin
+      if (DUT.u_ddc.hb5_dout_dv == 1'b1) begin
+        if (DUT.u_ddc.hb5_dout_chn == 0) begin  // I
+          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb5_dout_dq));
+        end else if (DUT.u_ddc.hb5_dout_chn == 8) begin  // Q
+          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb5_dout_dq));
+        end
+      end
+      @(posedge clk_dsp);
+    end
+  end
 
   final begin
     $fclose(fd);
