@@ -44,7 +44,7 @@ module prach_mixer (
   );
 
   generate
-    for (genvar i = 0; i < 3; i++) begin : g_parallel_ch
+    for (genvar i = 0; i < 3; i++) begin : g_ch
 
       prach_nco u_nco (
           .clk      (clk),

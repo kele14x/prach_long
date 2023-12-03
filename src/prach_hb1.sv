@@ -23,8 +23,8 @@ module prach_hb1 (
   logic       sync_out_s[3];
 
   generate
-    for (genvar i = 0; i < 3; i++) begin : g_parallel_channel
-      prach_hb1_ch i_ch (
+    for (genvar i = 0; i < 3; i++) begin : g_ch
+      prach_hb1_ch u_ch (
           .clk     (clk),
           .rst_n   (rst_n),
           //

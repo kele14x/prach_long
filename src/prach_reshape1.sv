@@ -19,86 +19,37 @@ module prach_reshape1 (
     output var        sync_out
 );
 
-  logic [ 3:0] cnt;
 
-  logic [15:0] din_di_d  [3];
-  logic        din_dv_d;
-  logic        sync_in_d;
-
-  logic [15:0] delay_in  [3];
-  logic [15:0] delay_out [3];
-
-  always_ff @(posedge clk or negedge rst_n) begin
-    if (~rst_n) begin
-      cnt <= '0;
-    end else if (sync_in_d) begin
-      cnt <= 1;
-    end else if (cnt > 0 || din_dv_d) begin
-      cnt <= cnt + 1;
-    end
-  end
-
-  delay #(
-      .WIDTH(2),
-      .DELAY(8)
-  ) u_delay_dv (
-      .clk  (clk),
-      .rst_n(1'b1),
-      .din  ({sync_in, din_dv}),
-      .dout ({sync_in_d, din_dv_d})
-  );
+  logic dout_dv_s [3];
+  logic dout_chn_s[3];
+  logic sync_out_s[3];
 
   generate
     for (genvar i = 0; i < 3; i++) begin : g_ch
-
-      delay #(
-          .WIDTH(16),
-          .DELAY(8)
-      ) u_delay_di (
-          .clk  (clk),
-          .rst_n(1'b1),
-          .din  (din_di[i]),
-          .dout (din_di_d[i])
+      prach_reshape_ch #(
+          .SIZE(8)
+      ) u_ch (
+          .clk     (clk),
+          .rst_n   (rst_n),
+          //
+          .din_dq1 (din_dr[i]),
+          .din_dq2 (din_di[i]),
+          .din_dv  (din_dv),
+          .din_chn (din_chn),
+          .sync_in (sync_in),
+          //
+          .dout_dp1(dout_dp1[i]),
+          .dout_dp2(dout_dp2[i]),
+          .dout_dv (dout_dv_s[i]),
+          .dout_chn(dout_chn_s[i]),
+          .sync_out(sync_out_s[i])
       );
-
-      delay #(
-          .WIDTH(16),
-          .DELAY(8)
-      ) u_delay_dx (
-          .clk  (clk),
-          .rst_n(1'b1),
-          .din  (delay_in[i]),
-          .dout (delay_out[i])
-      );
-
-      always_ff @(posedge clk) begin
-        dout_dp1[i] <= delay_out[i];
-      end
-
-      always_ff @(posedge clk) begin
-        if (cnt < 8) begin
-          dout_dp2[i] <= din_dr[i];
-        end else begin
-          dout_dp2[i] <= din_di_d[i];
-        end
-      end
-
-      always_comb begin
-        if (cnt < 8) begin
-          delay_in[i] = din_di_d[i];
-        end else begin
-          delay_in[i] = din_dr[i];
-        end
-      end
-
     end
   endgenerate
 
-  always_ff @(posedge clk) begin
-    dout_dv  <= din_dv_d;
-    dout_chn <= cnt;
-    sync_out <= sync_in_d;
-  end
+  assign dout_dv  = dout_dv_s[0];
+  assign dout_chn = dout_chn_s[0];
+  assign sync_out = sync_out_s[0];
 
 endmodule
 

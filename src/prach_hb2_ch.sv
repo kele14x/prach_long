@@ -21,6 +21,7 @@ module prach_hb2_ch (
   localparam int NumChannel = 32;
   localparam int NumChannelUsed = 24;
   localparam int NumUniqCoe = 2;
+  // fi(1, 18, 17)
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'd4249, 18'd37013};
 
   localparam int Latency = 6;
@@ -118,7 +119,7 @@ module prach_hb2_ch (
   end
 
   always_ff @(posedge clk) begin
-    dq <= result[32:17] + $signed(xp1[52]) / 2;
+    dq <= $signed(result[32:17]) + $signed(xp1[52]) / 2;
   end
 
   assign dout_dq = dq;

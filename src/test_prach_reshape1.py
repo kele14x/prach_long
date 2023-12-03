@@ -1,6 +1,6 @@
 import cocotb
-from cocotb.triggers import Timer, RisingEdge, ClockCycles
 from cocotb.clock import Clock
+from cocotb.triggers import ClockCycles, RisingEdge, Timer
 
 
 async def reset(dut):

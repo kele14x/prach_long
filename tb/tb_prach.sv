@@ -4,7 +4,7 @@
 
 module tb_prach ();
 
-  localparam int Tc = 1;
+  localparam int Tc       = 1;
   localparam int TvLength = 30720;
 
   // DUT signals
@@ -175,7 +175,7 @@ module tb_prach ();
         for (int i = 0; i < TvLength; i++) begin
           for (int ch = 0; ch < 4; ch++) begin
             for (int ant = 0; ant < 8; ant++) begin
-              if (ant == 0) begin
+              if (ant == 0 && ch == 0) begin
                 avst_sink_data[255-32*ant-:32] <= tv_data[i];
               end else begin
                 avst_sink_data[255-32*ant-:32] <= '0;
@@ -218,9 +218,10 @@ module tb_prach ();
 
     forever begin
       @(posedge clk_dsp);
-      if (DUT.u_ddc.mixer_dout_dv == 1'b1 && DUT.u_ddc.mixer_dout_chn == 0) begin
-        $fwrite(fd, "%d, %d\n", $signed(DUT.u_ddc.mixer_dout_dr[0]), 
-            $signed(DUT.u_ddc.mixer_dout_di[0]));
+      if (DUT.u_ddc.hb1_dout_dv == 1'b1 && DUT.u_ddc.hb1_dout_chn == 0) begin
+        $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb1_dout_dq[0]));
+      end else if (DUT.u_ddc.hb1_dout_dv == 1'b1 && DUT.u_ddc.hb1_dout_chn == 8) begin
+        $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb1_dout_dq[0]));
       end
     end
   end

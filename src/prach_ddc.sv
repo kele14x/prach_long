@@ -109,6 +109,23 @@ module prach_ddc (
       .ctrl_fcw (ctrl_fcw)
   );
 
+  prach_reshape1 u_reshape1 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dr  (mixer_dout_dr),
+      .din_di  (mixer_dout_di),
+      .din_dv  (mixer_dout_dv),
+      .din_chn (mixer_dout_chn),
+      .sync_in (mixer_sync_out),
+      //
+      .dout_dp1(hb1_din_dp1),
+      .dout_dp2(hb1_din_dp2),
+      .dout_dv (hb1_din_dv),
+      .dout_chn(hb1_din_chn),
+      .sync_out(hb1_sync_in)
+  );
+
   prach_hb1 u_hb1 (
       .clk     (clk),
       .rst_n   (rst_n),
@@ -123,6 +140,22 @@ module prach_ddc (
       .dout_dv (hb1_dout_dv),
       .dout_chn(hb1_dout_chn),
       .sync_out(hb1_sync_out)
+  );
+
+  prach_reshape2 u_reshape2 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq  (hb1_dout_dq),
+      .din_dv  (hb1_dout_dv),
+      .din_chn (hb1_dout_chn),
+      .sync_in (hb1_sync_out),
+      //
+      .dout_dp1(hb2_din_dp1),
+      .dout_dp2(hb2_din_dp2),
+      .dout_dv (hb2_din_dv),
+      .dout_chn(hb2_din_chn),
+      .sync_out(hb2_sync_in)
   );
 
   prach_hb2 u_hb2 (
