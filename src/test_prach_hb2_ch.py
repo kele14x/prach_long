@@ -77,7 +77,7 @@ async def sample_of(dut, n):
 
 
 @cocotb.test()
-async def test_prach_hb1_ch(dut):
+async def test_prach_hb2_ch(dut):
     cocotb.start_soon(Clock(dut.clk, 1, units="ns").start())
     await reset(dut)
     cocotb.start_soon(drive_impulse(dut))

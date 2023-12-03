@@ -24,7 +24,7 @@ module prach_hb5 (
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'sd616, 18'sd2989, -18'sd9818, 18'sd40178};
 
   localparam int Latency = 7;
-  localparam int Delay1 = 198;
+  localparam int Delay1 = 150;
   localparam int Delay2 = 337;
 
   logic [15:0] xp1[Delay1];
@@ -184,7 +184,7 @@ module prach_hb5 (
   end
 
   always_ff @(posedge clk) begin
-    dq <= $signed(result2[32:17]) + $signed(xp1[197]) / 2;
+    dq <= $signed(result2[32:17]) + $signed(xp1[149]) / 2;
   end
 
   assign dout_dq = dq;
