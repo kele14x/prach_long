@@ -20,14 +20,14 @@ module prach_reshape1 (
 );
 
 
-  logic dout_dv_s [3];
-  logic dout_chn_s[3];
-  logic sync_out_s[3];
+  logic       dout_dv_s [3];
+  logic [7:0] dout_chn_s[3];
+  logic       sync_out_s[3];
 
   generate
     for (genvar i = 0; i < 3; i++) begin : g_ch
       prach_reshape_ch #(
-          .SIZE(8)
+          .SIZE(16)
       ) u_ch (
           .clk     (clk),
           .rst_n   (rst_n),

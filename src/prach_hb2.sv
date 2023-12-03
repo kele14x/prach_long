@@ -12,7 +12,7 @@ module prach_hb2 (
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
-    output var [15:0] dout_dq,
+    output var [15:0] dout_dq [2],
     output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
@@ -23,8 +23,8 @@ module prach_hb2 (
   logic       sync_out_s[2];
 
   generate
-    for (genvar i = 0; i < 2; i++) begin : g_parallel_channel
-      prach_hb2_ch i_ch (
+    for (genvar i = 0; i < 2; i++) begin : g_ch
+      prach_hb2_ch u_ch (
           .clk     (clk),
           .rst_n   (rst_n),
           //

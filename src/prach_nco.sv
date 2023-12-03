@@ -105,8 +105,10 @@ module prach_nco (
         fcw[i] <= ctrl_fcw[i];
       end
 
-      always_ff @(posedge clk) begin
-        if (sync_in) begin
+      always_ff @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+          acc[i] <= '0;
+        end else if (sync_in) begin
           acc[i] <= '0;
         end else if (din_dv && din_chn == i) begin
           acc[i] <= phase_add(acc[i], fcw[i]);

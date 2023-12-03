@@ -23,8 +23,8 @@ module prach_top (
     input var          clk_eth_xran,
     input var          clk_eth_xran_n,
     //
-    output var [127:0] avst_source_vadata,
-    output var         avst_source_data,
+    output var [127:0] avst_source_data,
+    output var         avst_source_valid,
     output var [ 15:0] avst_source_channel,
     output var         avst_source_startofpacket,
     output var         avst_source_endofpacket,
@@ -47,8 +47,7 @@ module prach_top (
   logic [ 7:0] mux_dout_chn;
   logic        mux_sync_out;
 
-  logic [15:0] ddc_dout_dr  [3];
-  logic [15:0] ddc_dout_di  [3];
+  logic [15:0] ddc_dout_dq;
   logic        ddc_dout_dv;
   logic [ 7:0] ddc_dout_chn;
   logic        ddc_sync_out;
@@ -99,8 +98,7 @@ module prach_top (
       .din_chn  (mux_dout_chn),
       .sync_in  (mux_sync_out),
       //
-      .dout_dr  (ddc_dout_dr),
-      .dout_di  (ddc_dout_di),
+      .dout_dq  (ddc_dout_dq),
       .dout_dv  (ddc_dout_dv),
       .dout_chn (ddc_dout_chn),
       .sync_out (ddc_sync_out),

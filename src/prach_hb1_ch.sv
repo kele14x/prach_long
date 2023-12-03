@@ -24,10 +24,11 @@ module prach_hb1_ch (
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'd4134, 18'd36901};
 
   localparam int Latency = 6;
-  localparam int Delay = 49;
+  localparam int Delay1 = 37;
+  localparam int Delay2 = 49;
 
-  logic [15:0] xp1[Delay];
-  logic [15:0] xp2[Delay];
+  logic [15:0] xp1[Delay1];
+  logic [15:0] xp2[Delay2];
 
   logic signed [15:0] ay1;
   logic signed [15:0] ay2;
@@ -59,14 +60,14 @@ module prach_hb1_ch (
 
   always_ff @(posedge clk) begin
     xp1[0] <= din_dp1;
-    for (int i = 1; i < Delay; i++) begin
+    for (int i = 1; i < Delay1; i++) begin
       xp1[i] <= xp1[i-1];
     end
   end
 
   always_ff @(posedge clk) begin
     xp2[0] <= din_dp2;
-    for (int i = 1; i < Delay; i++) begin
+    for (int i = 1; i < Delay2; i++) begin
       xp2[i] <= xp2[i-1];
     end
   end

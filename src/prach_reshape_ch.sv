@@ -27,10 +27,10 @@ module prach_reshape_ch #(
   // x0s0s, x1s0s
   // x0s1s, x1s1s
 
-  localparam int Latency = SIZE + 1;
-  localparam int CounterWidth = $clog2(SIZE) + 1;
+  localparam int Latency = SIZE / 2 + 1;
 
-  logic [CounterWidth-1:0] cnt;
+  logic                    swap_n;
+  logic [             7:0] cnt;
 
   logic [            15:0] din_dq2_d;
   logic                    din_dv_d;
@@ -41,27 +41,39 @@ module prach_reshape_ch #(
 
   always_ff @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
-      cnt <= '0;
-    end else if (sync_in_d) begin
-      cnt <= 1;
-    end else if (cnt > 0 || din_dv_d) begin
-      cnt <= cnt == SIZE * 2 - 1 ? 0 : cnt + 1;
+      swap_n <= 1'b0;
+    end else if (sync_in && din_chn == SIZE / 2 - 1) begin
+      swap_n <= 1'b1;
+    end else if (sync_in) begin
+      swap_n <= 1'b0;
+    end else if (din_chn == SIZE / 2 - 1) begin
+      swap_n <= ~swap_n;
     end
   end
 
   delay #(
-      .WIDTH(18),
-      .DELAY(SIZE)
+      .WIDTH(16),
+      .DELAY(SIZE / 2)
   ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  ({sync_in, din_dv, din_dq2}),
-      .dout ({sync_in_d, din_dv_d, din_dq2_d})
+      .din  ({din_dq2}),
+      .dout ({din_dq2_d})
+  );
+
+  delay #(
+      .WIDTH(2),
+      .DELAY(SIZE / 2)
+  ) u_delay_dv (
+      .clk  (clk),
+      .rst_n(1'b1),
+      .din  ({sync_in, din_dv}),
+      .dout ({sync_in_d, din_dv_d})
   );
 
   delay #(
       .WIDTH(16),
-      .DELAY(SIZE)
+      .DELAY(SIZE / 2)
   ) u_delay_dx (
       .clk  (clk),
       .rst_n(1'b1),
@@ -74,7 +86,7 @@ module prach_reshape_ch #(
   end
 
   always_ff @(posedge clk) begin
-    if (cnt < SIZE) begin
+    if (swap_n || sync_in_d) begin
       dout_dp2 <= din_dq1;
     end else begin
       dout_dp2 <= din_dq2_d;
@@ -82,15 +94,17 @@ module prach_reshape_ch #(
   end
 
   always_comb begin
-    if (cnt < SIZE) begin
+    if (swap_n || sync_in_d) begin
       delay_in = din_dq2_d;
     end else begin
       delay_in = din_dq1;
     end
   end
 
+  assign cnt = swap_n ? din_chn : din_chn | (SIZE / 2);
+
   always_ff @(posedge clk) begin
-    dout_dv  <= din_dv_d;
+    dout_dv  <= din_dv_d && cnt < 48;
     dout_chn <= cnt;
     sync_out <= sync_in_d;
   end

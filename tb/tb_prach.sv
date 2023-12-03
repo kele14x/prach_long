@@ -4,7 +4,7 @@
 
 module tb_prach ();
 
-  localparam int Tc       = 1;
+  localparam int Tc = 0;
   localparam int TvLength = 30720;
 
   // DUT signals
@@ -27,8 +27,8 @@ module tb_prach ();
 
   logic         sync_in;
 
-  logic [127:0] avst_source_vadata;
-  logic         avst_source_data;
+  logic [127:0] avst_source_data;
+  logic         avst_source_valid;
   logic [ 15:0] avst_source_channel;
   logic         avst_source_startofpacket;
   logic         avst_source_endofpacket;
@@ -43,7 +43,7 @@ module tb_prach ();
 
   logic [ 31:0] tv_data                   [TvLength];
 
-  int fd;
+  int           fd;
 
 
   initial begin
@@ -59,6 +59,65 @@ module tb_prach ();
     end
   end
 
+  task automatic reset();
+    sync_in <= 1'b0;
+
+    avst_sink_data    <= 256'd0;
+    avst_sink_valid   <= 1'b0;
+    avst_sink_channel <= 8'b0;
+  endtask
+
+  // Flush the pipeline for specific clock ticks
+  task automatic flush_pipeline(input int n);
+    for (int i = 0; i < n; i++) begin
+      for (int ch = 0; ch < 4; ch++) begin
+        avst_sink_data    <= 256'd0;
+        avst_sink_valid   <= 1'b1;
+        avst_sink_channel <= ch;
+        @(posedge clk_jesd);
+      end  // ch
+    end  // i
+  endtask
+
+  task automatic send_tv();
+    for (int i = 0; i < TvLength; i++) begin
+      for (int ch = 0; ch < 4; ch++) begin
+        for (int ant = 0; ant < 8; ant++) begin
+          if (ant == 0 && ch == 0) begin
+            avst_sink_data[255-32*ant-:32] <= tv_data[i];
+          end else begin
+            avst_sink_data[255-32*ant-:32] <= '0;
+          end
+        end  // ant
+        avst_sink_valid   <= 1'b1;
+        avst_sink_channel <= ch;
+        @(posedge clk_jesd);
+      end  // ch
+    end  // i
+    avst_sink_data    <= 256'b0;
+    avst_sink_valid   <= 1'b0;
+    avst_sink_channel <= 8'd0;
+  endtask
+
+  task automatic impulse();
+    for (int i = 0; i < 1000; i++) begin
+      for (int ch = 0; ch < 4; ch++) begin
+        for (int ant = 0; ant < 8; ant++) begin
+          if (i == 0 && ch == 0 && ant == 0) begin
+            avst_sink_data[255-32*ant-:32] <= 16384;
+          end else begin
+            avst_sink_data[255-32*ant-:32] <= '0;
+          end
+        end  // ant
+        avst_sink_valid   <= 1'b1;
+        avst_sink_channel <= ch;
+        @(posedge clk_jesd);
+      end  // ch
+    end  // i
+    avst_sink_data    <= 256'b0;
+    avst_sink_valid   <= 1'b0;
+    avst_sink_channel <= 8'd0;
+  endtask
 
   // Clock & Reset Generation
 
@@ -137,94 +196,103 @@ module tb_prach ();
     int t;
 
     $display("*** Simulation starts");
-    avst_sink_data    = 256'd0;
-    avst_sink_valid   = 1'b0;
-    avst_sink_channel = 8'd0;
-    //
-    sync_in = 1'b0;
+    reset();
 
     wait (rst_dsp_n);
+    wait (rst_jesd_n);
     #100;
-    @(posedge clk_jesd);
 
     case (Tc)
       0: begin
-        for (int i = 0; i < 1000; i++) begin
-          for (int ch = 0; ch < 4; ch++) begin
-            for (int ant = 0; ant < 8; ant++) begin
-              logic [15:0] dr;
-              logic [15:0] di;
-              dr[15:12] = ant;
-              dr[11:8]  = ch;
-              dr[7:4]   = 4'h0;
-              dr[3:0]   = i;
-              di[15:12] = ant;
-              di[11:8]  = ch;
-              di[7:4]   = 4'hF;
-              di[3:0]   = i;
-              avst_sink_data[255-32*ant-:32] <= {di, dr};
-            end  // ant
-            avst_sink_valid   <= 1'b1;
-            avst_sink_channel <= ch;
-            @(posedge clk_jesd);
-          end  // ch
-        end  // i
+        flush_pipeline(1000);
+        fork
+          begin
+            #260;
+            @(posedge clk_dsp);
+            sync_in <= 1'b1;
+            @(posedge clk_dsp);
+            sync_in <= 1'b0;
+          end
+
+          begin
+            impulse();
+          end
+        join
       end
 
       1: begin
-        for (int i = 0; i < TvLength; i++) begin
-          for (int ch = 0; ch < 4; ch++) begin
-            for (int ant = 0; ant < 8; ant++) begin
-              if (ant == 0 && ch == 0) begin
-                avst_sink_data[255-32*ant-:32] <= tv_data[i];
-              end else begin
-                avst_sink_data[255-32*ant-:32] <= '0;
-              end
-            end  // ant
-            avst_sink_valid   <= 1'b1;
-            avst_sink_channel <= ch;
-            @(posedge clk_jesd);
-          end  // ch
-        end  // i
+        flush_pipeline(1000);
+        fork
+          begin
+            #260;
+            @(posedge clk_dsp);
+            sync_in <= 1'b1;
+            @(posedge clk_dsp);
+            sync_in <= 1'b0;
+          end
+
+          begin
+            send_tv();
+          end
+        join
       end
 
       default: #100;
     endcase
 
-    avst_sink_data    <= 256'b0;
-    avst_sink_valid   <= 1'b0;
-    avst_sink_channel <= 8'd0;
     #1000;
     $finish();
   end
 
   initial begin
-    sync_in = 1'b0;
-    wait (rst_dsp_n);
-    #1000;
-    @(posedge clk_dsp);
-    sync_in <= 1'b1;
-    @(posedge clk_dsp);
-    sync_in <= 1'b0;
-  end
-
-
-  initial begin
-    fd = $fopen("test_out.txt", "w");
+    fd = $fopen("hb1_out.txt", "w");
     if (!fd) begin
       $fatal("Could not open file");
       $finish();
     end
 
+    // Wait sync
     forever begin
       @(posedge clk_dsp);
-      if (DUT.u_ddc.hb1_dout_dv == 1'b1 && DUT.u_ddc.hb1_dout_chn == 0) begin
-        $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb1_dout_dq[0]));
-      end else if (DUT.u_ddc.hb1_dout_dv == 1'b1 && DUT.u_ddc.hb1_dout_chn == 8) begin
-        $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb1_dout_dq[0]));
+      if (DUT.u_ddc.hb3_sync_out) break;
+    end
+
+    forever begin
+      if (DUT.u_ddc.hb3_dout_dv == 1'b1) begin
+        if (DUT.u_ddc.hb3_dout_chn == 0) begin  // I
+          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb3_dout_dq));
+        end else if (DUT.u_ddc.hb3_dout_chn == 8) begin  // Q
+          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb3_dout_dq));
+        end
       end
+      @(posedge clk_dsp);
     end
   end
+
+//  initial begin
+//    fd = $fopen("test_out.txt", "w");
+//    if (!fd) begin
+//      $fatal("Could not open file");
+//      $finish();
+//    end
+
+//    // Wait sync
+//    forever begin
+//      @(posedge clk_dsp);
+//      if (DUT.u_ddc.hb5_sync_out) break;
+//    end
+
+//    forever begin
+//      if (DUT.u_ddc.hb5_dout_dv == 1'b1) begin
+//        if (DUT.u_ddc.hb5_dout_chn == 0) begin  // I
+//          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb5_dout_dq));
+//        end else if (DUT.u_ddc.hb5_dout_chn == 8) begin  // Q
+//          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb5_dout_dq));
+//        end
+//      end
+//      @(posedge clk_dsp);
+//    end
+//  end
 
   final begin
     $fclose(fd);

@@ -12,8 +12,7 @@ module prach_ddc (
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
-    output var [15:0] dout_dr  [3],
-    output var [15:0] dout_di  [3],
+    output var [15:0] dout_dq,
     output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out,
@@ -25,12 +24,14 @@ module prach_ddc (
     input var  [15:0] ctrl_fcw [3][8]
 );
 
+  // 8
   logic [15:0] mixer_dout_dr  [3];
   logic [15:0] mixer_dout_di  [3];
   logic        mixer_dout_dv;
   logic [ 7:0] mixer_dout_chn;
   logic        mixer_sync_out;
 
+  // 16
   logic [15:0] hb1_din_dp1    [3];
   logic [15:0] hb1_din_dp2    [3];
   logic        hb1_din_dv;
@@ -42,45 +43,49 @@ module prach_ddc (
   logic [ 7:0] hb1_dout_chn;
   logic        hb1_sync_out;
 
+  // 32
   logic [15:0] hb2_din_dp1    [2];
   logic [15:0] hb2_din_dp2    [2];
   logic        hb2_din_dv;
   logic [ 7:0] hb2_din_chn;
   logic        hb2_sync_in;
-  //
-  logic [31:0] hb2_dout_dq;
+
+  logic [15:0] hb2_dout_dq    [2];
   logic        hb2_dout_dv;
   logic [ 7:0] hb2_dout_chn;
   logic        hb2_sync_out;
 
+  // 64
   logic [15:0] hb3_din_dp1;
   logic [15:0] hb3_din_dp2;
   logic        hb3_din_dv;
   logic [ 7:0] hb3_din_chn;
   logic        hb3_sync_in;
-  //
+
   logic [15:0] hb3_dout_dq;
   logic        hb3_dout_dv;
   logic [ 7:0] hb3_dout_chn;
   logic        hb3_sync_out;
 
+  // 128
   logic [15:0] hb4_din_dp1;
   logic [15:0] hb4_din_dp2;
   logic        hb4_din_dv;
   logic [ 7:0] hb4_din_chn;
   logic        hb4_sync_in;
-  //
+
   logic [15:0] hb4_dout_dq;
   logic        hb4_dout_dv;
   logic [ 7:0] hb4_dout_chn;
   logic        hb4_sync_out;
 
+  // 256
   logic [15:0] hb5_din_dp1;
   logic [15:0] hb5_din_dp2;
   logic        hb5_din_dv;
   logic [ 7:0] hb5_din_chn;
   logic        hb5_sync_in;
-  //
+
   logic [15:0] hb5_dout_dq;
   logic        hb5_dout_dv;
   logic [ 7:0] hb5_dout_chn;
@@ -174,6 +179,22 @@ module prach_ddc (
       .sync_out(hb2_sync_out)
   );
 
+  prach_reshape3 u_reshape3 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq  (hb2_dout_dq),
+      .din_dv  (hb2_dout_dv),
+      .din_chn (hb2_dout_chn),
+      .sync_in (hb2_sync_out),
+      //
+      .dout_dp1(hb3_din_dp1),
+      .dout_dp2(hb3_din_dp2),
+      .dout_dv (hb3_din_dv),
+      .dout_chn(hb3_din_chn),
+      .sync_out(hb3_sync_in)
+  );
+
   prach_hb3 u_hb3 (
       .clk     (clk),
       .rst_n   (rst_n),
@@ -188,6 +209,22 @@ module prach_ddc (
       .dout_dv (hb3_dout_dv),
       .dout_chn(hb3_dout_chn),
       .sync_out(hb3_sync_out)
+  );
+
+  prach_reshape4 u_reshape4 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq  (hb3_dout_dq),
+      .din_dv  (hb3_dout_dv),
+      .din_chn (hb3_dout_chn),
+      .sync_in (hb3_sync_out),
+      //
+      .dout_dp1(hb4_din_dp1),
+      .dout_dp2(hb4_din_dp2),
+      .dout_dv (hb4_din_dv),
+      .dout_chn(hb4_din_chn),
+      .sync_out(hb4_sync_in)
   );
 
   prach_hb4 u_hb4 (
@@ -206,6 +243,22 @@ module prach_ddc (
       .sync_out(hb4_sync_out)
   );
 
+  prach_reshape5 u_reshape5 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq  (hb4_dout_dq),
+      .din_dv  (hb4_dout_dv),
+      .din_chn (hb4_dout_chn),
+      .sync_in (hb4_sync_out),
+      //
+      .dout_dp1(hb5_din_dp1),
+      .dout_dp2(hb5_din_dp2),
+      .dout_dv (hb5_din_dv),
+      .dout_chn(hb5_din_chn),
+      .sync_out(hb5_sync_in)
+  );
+
   prach_hb5 u_hb5 (
       .clk     (clk),
       .rst_n   (rst_n),
@@ -221,6 +274,11 @@ module prach_ddc (
       .dout_chn(hb5_dout_chn),
       .sync_out(hb5_sync_out)
   );
+
+  assign dout_dq  = hb5_dout_dq;
+  assign dout_dv  = hb5_dout_dv;
+  assign dout_chn = hb5_dout_chn;
+  assign sync_out = hb5_sync_out;
 
 endmodule
 

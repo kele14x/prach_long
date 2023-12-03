@@ -24,10 +24,11 @@ module prach_hb4 (
   localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'sd669, 18'sd3099, -18'sd9939, 18'sd40231};
 
   localparam int Latency = 7;
-  localparam int Delay = 337;
+  localparam int Delay1 = 198;
+  localparam int Delay2 = 337;
 
-  logic [15:0] xp1[Delay];
-  logic [15:0] xp2[Delay];
+  logic [15:0] xp1[Delay1];
+  logic [15:0] xp2[Delay2];
 
   logic signed [15:0] ay1;
   logic signed [15:0] ay2;
@@ -83,7 +84,7 @@ module prach_hb4 (
   always_ff @(posedge clk) begin
     if (din_dv) begin
       xp1[0] <= din_dp1;
-      for (int i = 1; i < Delay; i++) begin
+      for (int i = 1; i < Delay1; i++) begin
         xp1[i] <= xp1[i-1];
       end
     end
@@ -92,7 +93,7 @@ module prach_hb4 (
   always_ff @(posedge clk) begin
     if (din_dv) begin
       xp2[0] <= din_dp2;
-      for (int i = 1; i < Delay; i++) begin
+      for (int i = 1; i < Delay2; i++) begin
         xp2[i] <= xp2[i-1];
       end
     end
@@ -183,7 +184,7 @@ module prach_hb4 (
   end
 
   always_ff @(posedge clk) begin
-    dq <= result2[32:17] + $signed(xp1[197]) / 2;
+    dq <= $signed(result2[32:17]) + $signed(xp1[197]) / 2;
   end
 
   assign dout_dq = dq;
