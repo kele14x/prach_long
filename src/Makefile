@@ -20,9 +20,10 @@ VERILOG_SOURCES += $(PWD)/prach_hb4.sv
 VERILOG_SOURCES += $(PWD)/prach_hb5.sv
 VERILOG_SOURCES += $(PWD)/prach_mixer.sv
 VERILOG_SOURCES += $(PWD)/prach_nco.sv
+VERILOG_SOURCES += $(PWD)/prach_reshape1.sv
 
-TOPLEVEL ?= mult
+TOPLEVEL ?= prach_reshape1
 
-MODULE ?= test_mult
+MODULE ?= test_prach_reshape1
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
