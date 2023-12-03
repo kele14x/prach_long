@@ -45,7 +45,7 @@ module prach_reshape_ch #(
     end else if (sync_in_d) begin
       cnt <= 1;
     end else if (cnt > 0 || din_dv_d) begin
-      cnt <= cnt == SIZE - 1 ? 0 : cnt + 1;
+      cnt <= cnt == SIZE * 2 - 1 ? 0 : cnt + 1;
     end
   end
 
