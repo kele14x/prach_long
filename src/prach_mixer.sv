@@ -25,40 +25,28 @@ module prach_mixer (
     input var  [15:0] ctrl_fcw [3][8]
 );
 
-  parameter int Latency = 8;
-
-  logic signed [15:0] cos     [3];
-  logic signed [15:0] sin     [3];
-
-  logic        [15:0] din_dr_d[3];
-  logic        [15:0] din_di_d[3];
-
-  delay #(
-      .WIDTH(10),
-      .DELAY(Latency)
-  ) u_delay (
-      .clk  (clk),
-      .rst_n(1'b1),
-      .din  ({sync_in, din_dv, din_chn}),
-      .dout ({sync_out, dout_dv, dout_chn})
-  );
+  logic       dout_dv_s [3];
+  logic [7:0] dout_chn_s[3];
+  logic       sync_out_s[3];
 
   generate
     for (genvar i = 0; i < 3; i++) begin : g_ch
 
-      prach_nco u_nco (
+      prach_mixer_ch u_ch (
           .clk      (clk),
           .rst_n    (rst_n),
           //
+          .din_dr   (din_dr[i]),
+          .din_di   (din_di[i]),
           .din_dv   (din_dv),
           .din_chn  (din_chn),
           .sync_in  (sync_in),
           //
-          .dout_cos (cos[i]),
-          .dout_sin (sin[i]),
-          .dout_dv  (),
-          .dout_chn (),
-          .sync_out (),
+          .dout_dr  (dout_dr[i]),
+          .dout_di  (dout_di[i]),
+          .dout_dv  (dout_dv_s[i]),
+          .dout_chn (dout_chn_s[i]),
+          .sync_out (sync_out_s[i]),
           //
           .clk_csr  (clk_csr),
           .rst_csr_n(rst_csr_n),
@@ -66,39 +54,12 @@ module prach_mixer (
           .ctrl_fcw (ctrl_fcw[i])
       );
 
-      delay #(
-          .WIDTH(32),
-          .DELAY(4)
-      ) u_dq_delay (
-          .clk  (clk),
-          .rst_n(1'b1),
-          .din  ({din_di[i], din_dr[i]}),
-          .dout ({din_di_d[i], din_dr_d[i]})
-      );
-
-      cmult #(
-          .A_WIDTH(16),
-          .B_WIDTH(16),
-          .P_WIDTH(16),
-          .SHIFT  (14)
-      ) u_cmult (
-          .clk    (clk),
-          .rst_n  (rst_n),
-          //
-          .ar     (din_dr_d[i]),
-          .ai     (din_di_d[i]),
-          //
-          .br     (cos[i]),
-          .bi     (sin[i]),
-          //
-          .pr     (dout_dr[i]),
-          .pi     (dout_di[i]),
-          //
-          .err_ovf()
-      );
-
     end
   endgenerate
+
+  assign dout_dv  = dout_dv_s[0];
+  assign dout_chn = dout_chn_s[0];
+  assign sync_out = sync_out_s[0];
 
 endmodule
 

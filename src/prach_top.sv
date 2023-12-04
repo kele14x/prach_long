@@ -37,12 +37,13 @@ module prach_top (
     input var          ctrl_rat                 [8][3],
     input var          ctrl_scsby15             [8][3],
     input var  [  3:0] ctrl_bwby10              [8][3],
-    input var  [ 15:0] ctrl_fcw                 [8][3]
+    input var  [ 15:0] ctrl_fcw                 [8][3],
+    input var  [ 15:0] ctrl_time_offset         [8][3]
 );
 
 
-  logic [15:0] mux_dout_dr  [3];
-  logic [15:0] mux_dout_di  [3];
+  logic [15:0] mux_dout_dr       [3];
+  logic [15:0] mux_dout_di       [3];
   logic        mux_dout_dv;
   logic [ 7:0] mux_dout_chn;
   logic        mux_sync_out;
@@ -52,7 +53,18 @@ module prach_top (
   logic [ 7:0] ddc_dout_chn;
   logic        ddc_sync_out;
 
-  logic [15:0] ctrl_fcw_s   [3] [8];
+  logic [15:0] buffer_dout_dr;
+  logic [15:0] buffer_dout_di;
+  logic        buffer_dout_dv;
+  logic        buffer_sync_out;
+
+  logic [15:0] fft_dout_dr;
+  logic [15:0] fft_dout_di;
+  logic        fft_dout_dv;
+  logic        fft_sync_out;
+
+  logic [15:0] ctrl_fcw_s        [3] [8];
+  logic [15:0] ctrl_time_offset_s[3] [8];
 
   prach_mux u_mux (
       // JESD
@@ -83,7 +95,10 @@ module prach_top (
   generate
     for (genvar ant = 0; ant < 8; ant++) begin : g_ant
       for (genvar cc = 0; cc < 3; cc++) begin : g_cc
+
         assign ctrl_fcw_s[cc][ant] = ctrl_fcw[ant][cc];
+        assign ctrl_time_offset_s[cc][ant] = ctrl_time_offset[ant][cc];
+
       end
     end
   endgenerate
@@ -107,6 +122,38 @@ module prach_top (
       .rst_csr_n(rst_csr_n),
       //
       .ctrl_fcw (ctrl_fcw_s)
+  );
+
+  prach_buffer u_buffer (
+      .clk             (clk_dsp),
+      .rst_n           (rst_dsp_n),
+      //
+      .din_dq          (ddc_dout_dq),
+      .din_dv          (ddc_dout_dv),
+      .din_chn         (ddc_dout_chn),
+      .sync_in         (ddc_sync_out),
+      //
+      .dout_dr         (buffer_dout_dr),
+      .dout_di         (buffer_dout_di),
+      .dout_dv         (buffer_dout_dv),
+      .sync_out        (buffer_sync_out),
+      //
+      .ctrl_time_offset(ctrl_time_offset_s)
+  );
+
+  prach_fft u_fft (
+      .clk     (clk_dsp),
+      .rst_n   (rst_dsp_n),
+      //
+      .din_dr  (buffer_dout_dr),
+      .din_di  (buffer_dout_di),
+      .din_dv  (buffer_dout_dv),
+      .sync_in (buffer_sync_out),
+      //
+      .dout_dr (fft_dout_dr),
+      .dout_di (fft_dout_di),
+      .dout_dv (fft_dout_dv),
+      .sync_out(fft_sync_out)
   );
 
 endmodule

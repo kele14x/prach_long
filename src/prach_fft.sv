@@ -17,7 +17,7 @@ module prach_fft (
     output var        sync_out
 );
 
-  localparam int NumFftStage = 2;
+  localparam int NumFftStage = 10;
   localparam int NumFftPoints = 3 * 2 ** (NumFftStage - 1);
 
   localparam int Latency = 1582;

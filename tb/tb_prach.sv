@@ -38,6 +38,7 @@ module tb_prach ();
   logic         ctrl_scsby15              [       8] [3];
   logic [  3:0] ctrl_bwby10               [       8] [3];
   logic [ 15:0] ctrl_fcw                  [       8] [3];
+  logic [ 15:0] ctrl_time_offset          [       8] [3];
 
   // Test vector
 
@@ -51,10 +52,11 @@ module tb_prach ();
 
     for (int ant = 0; ant < 8; ant = ant + 1) begin
       for (int cc = 0; cc < 3; cc = cc + 1) begin
-        ctrl_rat[ant][cc]     = 1'b0;  // LTE
-        ctrl_scsby15[ant][cc] = 1'b0;  // 15kHz SCS
-        ctrl_bwby10[ant][cc]  = 4'd2;  // 20Mhz
-        ctrl_fcw[ant][cc]     = (ant == 0 && cc == 0) ? 16'd6768 : 16'd0;
+        ctrl_rat[ant][cc]         = 1'b0;  // LTE
+        ctrl_scsby15[ant][cc]     = 1'b0;  // 15kHz SCS
+        ctrl_bwby10[ant][cc]      = 4'd2;  // 20Mhz
+        ctrl_fcw[ant][cc]         = (ant == 0 && cc == 0) ? 16'd6768 : 16'd0;
+        ctrl_time_offset[ant][cc] = 16'd0;
       end
     end
   end
@@ -244,30 +246,30 @@ module tb_prach ();
     $finish();
   end
 
-//  initial begin
-//    fd = $fopen("hb1_out.txt", "w");
-//    if (!fd) begin
-//      $fatal("Could not open file");
-//      $finish();
-//    end
+  //  initial begin
+  //    fd = $fopen("hb1_out.txt", "w");
+  //    if (!fd) begin
+  //      $fatal("Could not open file");
+  //      $finish();
+  //    end
 
-//    // Wait sync
-//    forever begin
-//      @(posedge clk_dsp);
-//      if (DUT.u_ddc.hb3_sync_out) break;
-//    end
+  //    // Wait sync
+  //    forever begin
+  //      @(posedge clk_dsp);
+  //      if (DUT.u_ddc.hb3_sync_out) break;
+  //    end
 
-//    forever begin
-//      if (DUT.u_ddc.hb3_dout_dv == 1'b1) begin
-//        if (DUT.u_ddc.hb3_dout_chn == 0) begin  // I
-//          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb3_dout_dq));
-//        end else if (DUT.u_ddc.hb3_dout_chn == 8) begin  // Q
-//          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb3_dout_dq));
-//        end
-//      end
-//      @(posedge clk_dsp);
-//    end
-//  end
+  //    forever begin
+  //      if (DUT.u_ddc.hb3_dout_dv == 1'b1) begin
+  //        if (DUT.u_ddc.hb3_dout_chn == 0) begin  // I
+  //          $fwrite(fd, "%d, ", $signed(DUT.u_ddc.hb3_dout_dq));
+  //        end else if (DUT.u_ddc.hb3_dout_chn == 8) begin  // Q
+  //          $fwrite(fd, "%d\n", $signed(DUT.u_ddc.hb3_dout_dq));
+  //        end
+  //      end
+  //      @(posedge clk_dsp);
+  //    end
+  //  end
 
   initial begin
     fd = $fopen("test_out.txt", "w");
