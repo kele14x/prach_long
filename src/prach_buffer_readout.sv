@@ -25,6 +25,9 @@ module prach_buffer_readout (
   logic        req        [24];
   logic        ack        [24];
 
+  logic [10:0] rd_cnt;
+  logic [10:0] rd_cnt_next;
+
   logic [31:0] rd_data_or;
 
   // First channel first arbiter
@@ -66,13 +69,28 @@ module prach_buffer_readout (
 
   // Read
 
-  assign done = (rd_addr == 1535);
-
   always_ff @(posedge clk) begin
     if (~busy) begin
-      rd_addr <= '0;
+      rd_cnt <= '0;
     end else begin
-      rd_addr <= rd_addr + 1;
+      rd_cnt <= rd_cnt_next;
+    end
+  end
+
+  always_comb begin
+    if (rd_cnt[1:0] == 2'b10) begin
+      rd_cnt_next = {rd_cnt[10:2] + 1, 2'b00};
+    end else begin
+      rd_cnt_next = rd_cnt + 1;
+    end
+  end
+
+  assign done = (rd_cnt == 2046);
+
+  always_comb begin
+    rd_addr[10:9] = rd_cnt[1:0];
+    for (int i = 0; i < 9; i++) begin
+      rd_addr[i] = rd_cnt[10-i];
     end
   end
 
