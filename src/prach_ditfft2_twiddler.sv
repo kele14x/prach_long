@@ -12,12 +12,14 @@ module prach_ditfft2_twiddler #(
     input var  [17:0] din_di,
     input var         din_dv,
     input var         sync_in,
+    input var         din_dv_ahead,
     input var         sync_ahead_in,
     //
     output var [17:0] dout_dr,
     output var [17:0] dout_di,
     output var        dout_dv,
     output var        sync_out,
+    output var        dout_dv_ahead,
     output var        sync_ahead_out
 );
 
@@ -56,7 +58,7 @@ module prach_ditfft2_twiddler #(
       cnt <= 0;
     end else if (sync_ahead_in) begin
       cnt <= 1;
-    end else if (cnt > 0) begin
+    end else if (din_dv_ahead) begin
       cnt <= cnt == NUM_FFT_LENGTH - 1 ? 0 : cnt + 1;
     end
   end
@@ -98,13 +100,13 @@ module prach_ditfft2_twiddler #(
   );
 
   delay #(
-      .WIDTH(3),
+      .WIDTH(4),
       .DELAY(Latency)
   ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  ({sync_ahead_in, sync_in, din_dv}),
-      .dout ({sync_ahead_out, sync_out, dout_dv})
+      .din  ({sync_ahead_in, din_dv_ahead, sync_in, din_dv}),
+      .dout ({sync_ahead_out, dout_dv_ahead, sync_out, dout_dv})
   );
 
 endmodule

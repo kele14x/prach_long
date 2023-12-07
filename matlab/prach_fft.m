@@ -1,22 +1,21 @@
-%%
-clc;
-clearvars;
-close all;
+function y = prach_fft(x)
+% PRACH_FFT is bit accurate PRACH FFT model
+nFFT = length(x);
+nStage = log2(nFFT/3)+1;
 
-%%
-nFFT = 1536;
-rng(12345);
-x = randn(1, nFFT) + 1j * randn(1, nFFT);
+K = 3 * 2.^(1:log2(nFFT/3));
 
-idx = [bitrevorder(1:nFFT/3); bitrevorder(nFFT/3+1:2*nFFT/3); bitrevorder(2*nFFT/3+1:nFFT)];
-idx = idx(:);
+t = zeros(nFFT, nStage);
 
-y = ditfft3(x(idx), 3);
-for n = 3 * 2.^(1:log2(nFFT/3)) % [6, 12, 24, 48, 96, 192, 384, 768, 1536]
-    y = ditfft2(y, n);
+% Stage 1
+t(:,1) = ditfft3(x, 3);
+
+% Stage 2 ~ N
+for i = 1:log2(nFFT/3)
+    n = K(i);
+    t(:,i+1) = ditfft2(t(:,i), n);
 end
 
-z = fft(x);
-plot(abs([y(:), z(:)]));
-disp(rms(y - z) / rms(y))
+y = t(:,nStage);
 
+end

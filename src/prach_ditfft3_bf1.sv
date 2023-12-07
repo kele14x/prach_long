@@ -21,60 +21,46 @@ module prach_ditfft3_bf1 (
 
   logic        [ 1:0] cnt;
 
-  logic signed [17:0] x1r;
-  logic signed [17:0] x1i;
+  logic signed [17:0] d1r;
+  logic signed [17:0] d1i;
 
-  logic signed [17:0] x2r;
-  logic signed [17:0] x2i;
-
-  logic signed [17:0] y1r;
-  logic signed [17:0] y1i;
 
   always_ff @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
       cnt <= 0;
     end else if (sync_in) begin
       cnt <= 1;
-    end else if (cnt > 0) begin
+    end else if (din_dv) begin
       cnt <= cnt == 2 ? 0 : cnt + 1;
     end
   end
 
   always_ff @(posedge clk) begin
     if (cnt == 0 || cnt == 1) begin
-      x1r <= din_dr;
-      x1i <= din_di;
+      d1r <= din_dr;
+      d1i <= din_di;
     end else begin
       // -x1 + x2
-      x1r <= -x1r + din_dr;
-      x1i <= -x1i + din_di;
+      d1r <= -d1r + din_dr;
+      d1i <= -d1i + din_di;
     end
   end
 
   always_ff @(posedge clk) begin
-    x2r <= x1r;
-    x2i <= x1i;
-  end
-
-  always_ff @(posedge clk) begin
-    y1r <= din_dr;
-    y1i <= din_di;
-  end
-
-  always_ff @(posedge clk) begin
-    if (cnt == 0) begin
-      // x1 + x2
-      dout_dr <= x2r + y1r;
-      dout_di <= x2i + y1i;
+    if (cnt == 0 || cnt == 1) begin
+      // x0 / -x1 + x2
+      dout_dr <= d1r;
+      dout_di <= d1i;
     end else begin
-      dout_dr <= x2r;
-      dout_di <= x2i;
+      // x1 + x2
+      dout_dr <= d1r + din_dr;
+      dout_di <= d1i + din_di;
     end
   end
 
   delay #(
       .WIDTH(2),
-      .DELAY(3)
+      .DELAY(2)
   ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),

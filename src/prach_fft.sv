@@ -26,12 +26,16 @@ module prach_fft (
   logic signed [17:0] s0_di        [NumFftStage+1];
   logic               s0_dv        [NumFftStage+1];
   logic               s0_sync      [NumFftStage+1];
+
+  logic               s0_dv_ahead  [NumFftStage+1];
   logic               s0_sync_ahead[NumFftStage+1];
 
   assign s0_dr[0]         = $signed(din_dr);
   assign s0_di[0]         = $signed(din_di);
   assign s0_dv[0]         = din_dv;
   assign s0_sync[0]       = sync_in;
+
+  assign s0_dv_ahead[0]   = din_dv;
   assign s0_sync_ahead[0] = sync_in;
 
   prach_ditfft3 u_ditfft3 (
@@ -50,13 +54,13 @@ module prach_fft (
   );
 
   delay #(
-      .WIDTH(1),
-      .DELAY(7)
+      .WIDTH(2),
+      .DELAY(6)
   ) u_delay_sync_ahead (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  (s0_sync_ahead[0]),
-      .dout (s0_sync_ahead[1])
+      .din  ({s0_sync_ahead[0], s0_dv_ahead[0]}),
+      .dout ({s0_sync_ahead[1], s0_dv_ahead[1]})
   );
 
   generate
@@ -72,12 +76,16 @@ module prach_fft (
           .din_di        (s0_di[i+1]),
           .din_dv        (s0_dv[i+1]),
           .sync_in       (s0_sync[i+1]),
+          //
+          .din_dv_ahead  (s0_dv_ahead[i+1]),
           .sync_ahead_in (s0_sync_ahead[i+1]),
           //
           .dout_dr       (s0_dr[i+2]),
           .dout_di       (s0_di[i+2]),
           .dout_dv       (s0_dv[i+2]),
           .sync_out      (s0_sync[i+2]),
+          //
+          .dout_dv_ahead (s0_dv_ahead[i+2]),
           .sync_ahead_out(s0_sync_ahead[i+2])
       );
 

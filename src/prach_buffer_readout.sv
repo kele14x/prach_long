@@ -113,9 +113,15 @@ module prach_buffer_readout (
       .dout (dout_dv)
   );
 
-  always_ff @(posedge clk) begin
-    sync_out <= rd_addr == 0 && busy;
-  end
+  delay #(
+      .WIDTH(1),
+      .DELAY(4)
+  ) u_delay_sync (
+      .clk  (clk),
+      .rst_n(1'b1),
+      .din  (rd_addr == 0 && busy),
+      .dout (sync_out)
+  );
 
 endmodule
 

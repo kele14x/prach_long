@@ -74,7 +74,7 @@ module prach_ditfft3_bf2 (
       cnt <= 0;
     end else if (sync_in_d) begin
       cnt <= 1;
-    end else if (cnt > 0) begin
+    end else if (din_dv_d) begin
       cnt <= cnt == 2 ? 0 : cnt + 1;
     end
   end
@@ -85,8 +85,8 @@ module prach_ditfft3_bf2 (
       x1i <= din_di_d;
     end else begin
       // x0 - x1 / 2
-      x1r <= x1r - din_dr_d / 2;
-      x1i <= x1i - din_di_d / 2;
+      x1r <= (x1r - din_dr_d / 2) + (din_dr_d[0] ? 1 : 0);
+      x1i <= (x1i - din_di_d / 2) + (din_di_d[0] ? 1 : 0);
     end
   end
 

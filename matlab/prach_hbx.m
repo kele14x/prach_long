@@ -1,4 +1,5 @@
-function [coe_hb1, coe_hb2, coe_hb3, coe_hb4, coe_hb5] = prach_hbx()
+function [hb1, hb2, hb3, hb4, hb5] = prach_hbx()
+% PRACH_HBX get coefficents for PRACH HB filters
 
 W = 17;
 Fs = 61.44e6 ./ [1, 2, 4, 8, 16, 48];
@@ -12,10 +13,10 @@ hb3 = firhalfband('minorder', Bw_short/Fs(3), db2mag(0.01)-1); % 15.36
 hb4 = firhalfband('minorder', Bw_short/Fs(4), db2mag(0.01)-1); %  7.68
 hb5 = firhalfband('minorder', Bw_long/Fs(5), db2mag(0.01)-1); %  3.84
 
-coe_hb1 = round(hb1*2^W);
-coe_hb2 = round(hb2*2^W);
-coe_hb3 = round(hb3*2^W);
-coe_hb4 = round(hb4*2^W);
-coe_hb5 = round(hb5*2^W);
+hb1 = round(hb1*2^W);
+hb2 = round(hb2*2^W);
+hb3 = round(hb3*2^W);
+hb4 = round(hb4*2^W);
+hb5 = round(hb5*2^W);
 
 end
