@@ -12,7 +12,8 @@ module prach_ddc (
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
-    output var [15:0] dout_dq,
+    output var [15:0] dout_dr,
+    output var [15:0] dout_di,
     output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out,
@@ -90,6 +91,19 @@ module prach_ddc (
   logic        hb5_dout_dv;
   logic [ 7:0] hb5_dout_chn;
   logic        hb5_sync_out;
+
+  logic [15:0] conv_din_dr;
+  logic [15:0] conv_din_di;
+  logic        conv_din_dv;
+  logic [ 7:0] conv_din_chn;
+  logic        conv_sync_in;
+
+  logic [15:0] conv_dout_dr;
+  logic [15:0] conv_dout_di;
+  logic        conv_dout_dv;
+  logic [ 7:0] conv_dout_chn;
+  logic        conv_sync_out;
+
 
   prach_mixer u_mixer (
       .clk      (clk),
@@ -275,10 +289,44 @@ module prach_ddc (
       .sync_out(hb5_sync_out)
   );
 
-  assign dout_dq  = hb5_dout_dq;
-  assign dout_dv  = hb5_dout_dv;
-  assign dout_chn = hb5_dout_chn;
-  assign sync_out = hb5_sync_out;
+  prach_reshape6 u_reshape6 (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq  (hb5_dout_dq),
+      .din_dv  (hb5_dout_dv),
+      .din_chn (hb5_dout_chn),
+      .sync_in (hb5_sync_out),
+      //
+      .dout_dr (conv_din_dr),
+      .dout_di (conv_din_di),
+      .dout_dv (conv_din_dv),
+      .dout_chn(conv_din_chn),
+      .sync_out(conv_sync_in)
+  );
+
+  prach_conv u_conv (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dr  (conv_din_dr),
+      .din_di  (conv_din_di),
+      .din_dv  (conv_din_dv),
+      .din_chn (conv_din_chn),
+      .sync_in (conv_sync_in),
+      //
+      .dout_dr (conv_dout_dr),
+      .dout_di (conv_dout_di),
+      .dout_dv (conv_dout_dv),
+      .dout_chn(conv_dout_chn),
+      .sync_out(conv_sync_out)
+  );
+
+  assign dout_dr  = conv_dout_dr;
+  assign dout_di  = conv_dout_di;
+  assign dout_dv  = conv_dout_dv;
+  assign dout_chn = conv_dout_chn;
+  assign sync_out = conv_sync_out;
 
 endmodule
 

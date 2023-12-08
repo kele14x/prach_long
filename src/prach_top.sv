@@ -48,7 +48,8 @@ module prach_top (
   logic [ 7:0] mux_dout_chn;
   logic        mux_sync_out;
 
-  logic [15:0] ddc_dout_dq;
+  logic [15:0] ddc_dout_dr;
+  logic [15:0] ddc_dout_di;
   logic        ddc_dout_dv;
   logic [ 7:0] ddc_dout_chn;
   logic        ddc_sync_out;
@@ -113,7 +114,8 @@ module prach_top (
       .din_chn  (mux_dout_chn),
       .sync_in  (mux_sync_out),
       //
-      .dout_dq  (ddc_dout_dq),
+      .dout_dr  (ddc_dout_dr),
+      .dout_di  (ddc_dout_di),
       .dout_dv  (ddc_dout_dv),
       .dout_chn (ddc_dout_chn),
       .sync_out (ddc_sync_out),
@@ -128,7 +130,8 @@ module prach_top (
       .clk             (clk_dsp),
       .rst_n           (rst_dsp_n),
       //
-      .din_dq          (ddc_dout_dq),
+      .din_dr          (ddc_dout_dr),
+      .din_di          (ddc_dout_di),
       .din_dv          (ddc_dout_dv),
       .din_chn         (ddc_dout_chn),
       .sync_in         (ddc_sync_out),

@@ -8,7 +8,8 @@ module prach_buffer_ch #(
     input var         clk,
     input var         rst_n,
     //
-    input var  [15:0] din_dq,
+    input var  [15:0] din_dr,
+    input var  [15:0] din_di,
     input var         din_dv,
     input var  [ 7:0] din_chn,
     input var  [15:0] din_sample_k,
@@ -25,11 +26,11 @@ module prach_buffer_ch #(
 
   logic [15:0] time_offset;
 
-  logic [15:0] mem         [3072];
+  logic [31:0] mem         [1536];
 
-  logic [11:0] wr_addr;
+  logic [10:0] wr_addr;
   logic        wr_en;
-  logic [15:0] wr_data;
+  logic [31:0] wr_data;
 
   logic [31:0] rd_data_d1;
   logic [31:0] rd_data_d2;
@@ -45,19 +46,19 @@ module prach_buffer_ch #(
   // Write
 
   always_ff @(posedge clk) begin
-    wr_addr <= (din_sample_k - time_offset) * 2 + (din_chn == CHANNEL + 8);
+    wr_addr <= (din_sample_k - time_offset);
   end
 
   always_ff @(posedge clk) begin
     if (din_sample_k >= time_offset && din_sample_k < time_offset + 1536) begin
-      wr_en <= din_dv && (din_chn == CHANNEL || din_chn == CHANNEL + 8);
+      wr_en <= din_dv && (din_chn == CHANNEL);
     end else begin
       wr_en <= 1'b0;
     end
   end
 
   always_ff @(posedge clk) begin
-    wr_data <= din_dq;
+    wr_data <= {din_di, din_dr};
   end
 
   // Mem write
@@ -72,7 +73,7 @@ module prach_buffer_ch #(
 
   always_ff @(posedge clk) begin
     if (rd_en) begin
-      rd_data_d1 <= {mem[{rd_addr, 1'b1}], mem[{rd_addr, 1'b0}]};
+      rd_data_d1 <= mem[rd_addr];
     end else begin
       rd_data_d1 <= '0;
     end
@@ -85,8 +86,8 @@ module prach_buffer_ch #(
 
   assign rd_data = rd_data_d3;
 
-  // 
-  
+  //
+
   always_ff @(posedge clk or negedge rst_n) begin
     if (~rst_n) begin
       done_req <= 1'b0;

@@ -6,7 +6,8 @@ module prach_buffer (
     input var         clk,
     input var         rst_n,
     //
-    input var  [15:0] din_dq,
+    input var  [15:0] din_dr,
+    input var  [15:0] din_di,
     input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
@@ -19,7 +20,8 @@ module prach_buffer (
     input var  [15:0] ctrl_time_offset[3][8]
 );
 
-  logic [15:0] din_dq_d;
+  logic [15:0] din_dr_d;
+  logic [15:0] din_di_d;
   logic        din_dv_d;
   logic [ 7:0] din_chn_d;
 
@@ -34,7 +36,8 @@ module prach_buffer (
 
 
   always_ff @(posedge clk) begin
-    din_dq_d  <= din_dq;
+    din_dr_d  <= din_dr;
+    din_di_d  <= din_di;
     din_dv_d  <= din_dv;
     din_chn_d <= din_chn;
   end
@@ -57,7 +60,8 @@ module prach_buffer (
             .clk             (clk),
             .rst_n           (rst_n),
             //
-            .din_dq          (din_dq_d),
+            .din_dr          (din_dr_d),
+            .din_di          (din_di_d),
             .din_dv          (din_dv_d),
             .din_chn         (din_chn_d),
             .din_sample_k    (din_sample_k),
