@@ -18,55 +18,24 @@ module prach_reshape6 (
     output var        sync_out
 );
 
-  logic [17:0] buffer[64];
-
-  logic [ 7:0] cnt;
-
-  logic [ 5:0] addrr;
-  logic [ 5:0] addri;
-
-  initial begin
-    for (int i = 0; i < 64; i++) begin
-      buffer[i] <= '0;
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    if (din_chn < 48) begin
-      buffer[din_chn] <= {sync_in, din_dv, din_dq};
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    if (din_chn == 24) begin
-      cnt <= 0;
-    end else begin
-      cnt <= cnt + 1;
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    if (cnt < 24) begin
-      {sync_out, dout_dv, dout_dr} <= buffer[addrr];
-    end else begin
-      {sync_out, dout_dv, dout_dr} <= '0;
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    if (cnt < 24) begin
-      dout_di <= buffer[addri][15:0];
-    end else begin
-      dout_di <= '0;
-    end
-  end
-
-  assign addrr = {cnt[4:3], 1'b0, cnt[2:0]};
-  assign addri = {cnt[4:3], 1'b1, cnt[2:0]};
-
-  always_ff @(posedge clk) begin
-    dout_chn <= cnt;
-  end
+  prach_reshape_ch #(
+      .SIZE(16)
+  ) u_ch (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      //
+      .din_dq1 (din_dq),
+      .din_dq2 ('0),
+      .din_dv  (din_dv),
+      .din_chn (din_chn),
+      .sync_in (sync_in),
+      //
+      .dout_dp1(dout_dr),
+      .dout_dp2(dout_di),
+      .dout_dv (dout_dv),
+      .dout_chn(dout_chn),
+      .sync_out(sync_out)
+  );
 
 endmodule
 

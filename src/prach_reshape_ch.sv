@@ -29,24 +29,25 @@ module prach_reshape_ch #(
 
   localparam int Latency = SIZE / 2 + 1;
 
-  logic                    swap_n;
-  logic [             7:0] cnt;
+  logic        swap_n;
+  logic [ 7:0] cnt;
 
-  logic [            15:0] din_dq2_d;
-  logic                    din_dv_d;
-  logic                    sync_in_d;
+  logic [15:0] din_dq2_d;
+  logic        din_dv_d;
+  logic [ 7:0] din_chn_d;
+  logic        sync_in_d;
 
-  logic [            15:0] delay_in;
-  logic [            15:0] delay_out;
+  logic [15:0] delay_in;
+  logic [15:0] delay_out;
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       swap_n <= 1'b0;
-    end else if (sync_in && din_chn == SIZE / 2 - 1) begin
+    end else if (sync_in && din_chn % (SIZE / 2) == SIZE / 2 - 1) begin
       swap_n <= 1'b1;
     end else if (sync_in) begin
       swap_n <= 1'b0;
-    end else if (din_chn == SIZE / 2 - 1) begin
+    end else if (din_chn % (SIZE / 2) == SIZE / 2 - 1) begin
       swap_n <= ~swap_n;
     end
   end
@@ -62,13 +63,13 @@ module prach_reshape_ch #(
   );
 
   delay #(
-      .WIDTH(2),
+      .WIDTH(10),
       .DELAY(SIZE / 2)
   ) u_delay_dv (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  ({sync_in, din_dv}),
-      .dout ({sync_in_d, din_dv_d})
+      .din  ({sync_in, din_chn, din_dv}),
+      .dout ({sync_in_d, din_chn_d, din_dv_d})
   );
 
   delay #(
@@ -101,7 +102,7 @@ module prach_reshape_ch #(
     end
   end
 
-  assign cnt = swap_n ? din_chn : din_chn | (SIZE / 2);
+  assign cnt = swap_n ? din_chn_d : din_chn_d | (SIZE / 2);
 
   always_ff @(posedge clk) begin
     dout_dv  <= din_dv_d && cnt < 48;

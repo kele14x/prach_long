@@ -58,7 +58,7 @@ module prach_nco (
 
   // Channel counter
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (din_dv) begin
       chn <= din_chn[2:0];
     end
@@ -105,7 +105,7 @@ module prach_nco (
         fcw[i] <= ctrl_fcw[i];
       end
 
-      always_ff @(posedge clk or negedge rst_n) begin
+      always_ff @(posedge clk) begin
         if (~rst_n) begin
           acc[i] <= '0;
         end else if (sync_in) begin

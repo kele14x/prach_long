@@ -29,7 +29,9 @@ module prach_hb2_ch (
   localparam int Delay1 = 37;
   localparam int Delay2 = 97;
 
+  (* ramstyle = "mlab" *)
   logic [15:0] xp1[Delay1];
+  (* ramstyle = "mlab" *)
   logic [15:0] xp2[Delay2];
 
   logic signed [15:0] ay1;

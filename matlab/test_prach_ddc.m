@@ -3,20 +3,31 @@ clc;
 clearvars;
 close all;
 
-%% TC-0
 nFFT = 1536;
 x = prach_source();
-x = prach_ddc(x);
-x = x(1:nFFT);
+x = upsample(x, 2);
 
-y = readmatrix('../prj/project_1.sim/sim_1/behav/xsim/test_out.txt');
-y = y(:, 1) + 1j * y(:, 2);
-e = y - x;
+%% TC-0
+y = prach_ddc(x);
+y = y(1:nFFT);
+
+t = (0:length(x)-1).';
+r = x .* exp(2j * pi * t * 6768 * 1.25e3 / 61.44e6);
+r = downsample(r, 32) / 2;
+t = (0:length(r)-1).';
+r = r .* exp(2j * pi * t * 432 * 1.25e3 / 1.92e6);
+r = r(1:nFFT);
+
+y_ = y * (y \ r);
+e = y_ - r;
 
 figure();
-plot(abs(x));
+plot(abs(fft(r)));
 hold on;
-plot(abs(y));
+plot(abs(fft(y)));
 
-evm = rms(e) / rms(x);
+evm = rms(e) / rms(r);
 assert(evm < 0.01);
+
+writematrix([real(x), imag(x)], './test/prach_ddc_in.txt');
+writematrix([real(y), imag(y)], './test/prach_ddc_out.txt');

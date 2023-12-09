@@ -22,23 +22,65 @@ module prach_top (
     // !@ clk_eth_xran
     input var          clk_eth_xran,
     input var          clk_eth_xran_n,
+    // C-Plane
+    input var          avst_sink_c_valid,
+    input var          avst_sink_c_startofpacket,
+    input var          avst_sink_c_endofpacket,
+    input var          avst_sink_c_error,
     //
-    output var [127:0] avst_source_data,
-    output var         avst_source_valid,
-    output var [ 15:0] avst_source_channel,
-    output var         avst_source_startofpacket,
-    output var         avst_source_endofpacket,
-    input var          avst_source_ready,
+    input var  [ 15:0] rx_c_rtc_id,
+    input var  [ 15:0] rx_c_seq_id,
+    input var          rx_c_dataDirection,
+    input var  [  3:0] rx_c_filterIndex,
+    input var  [  7:0] rx_c_frameId,
+    input var  [  3:0] rx_c_subframeId,
+    input var  [  5:0] rx_c_slotId,
+    input var  [  5:0] rx_c_symbolId,
+    input var  [  7:0] rx_c_sectionType,
+    input var  [ 15:0] rx_c_timeOffset,
+    input var  [  7:0] rx_c_frameStructure,
+    input var  [ 15:0] rx_c_cpLength,
+    input var  [  7:0] rx_c_udCompHdr,
+    input var  [ 11:0] rx_c_sectionId,
+    input var          rx_c_rb,
+    input var  [  9:0] rx_c_startPrbc,
+    input var  [  7:0] rx_c_numPrbc,
+    input var  [ 11:0] rx_c_reMask,
+    input var          rx_c_ef,
+    input var  [ 14:0] rx_c_beamid,
+    input var  [  3:0] rx_c_numSymbol,
+    input var  [ 23:0] rx_c_frequencyOffset,
+    // U-Plane
+    output var [127:0] avst_source_u_data,
+    output var         avst_source_u_valid,
+    output var         avst_source_u_startofpacket,
+    output var         avst_source_u_endofpacket,
+    input var          avst_source_u_ready,
+    //
+    output var [ 15:0] tx_u_size,
+    output var [ 15:0] tx_u_pc_id,
+    output var [ 15:0] tx_u_seq_id,
+    output var         tx_u_dataDirection,
+    output var [  3:0] tx_u_filterIndex,
+    output var [  7:0] tx_u_frameId,
+    output var [  3:0] tx_u_subframeId,
+    output var [  5:0] tx_u_slotID,
+    output var [  5:0] tx_u_symbolid,
+    output var [ 11:0] tx_u_sectionId,
+    output var         tx_u_rb,
+    output var [  9:0] tx_u_startPrb,
+    output var [  7:0] tx_u_numPrb,
+    output var [  7:0] tx_u_udCompHdr,
     // CSR
     //----
     input var          clk_csr,
     input var          rst_csr_n,
     //
-    input var          ctrl_rat                 [8][3],
-    input var          ctrl_scsby15             [8][3],
-    input var  [  3:0] ctrl_bwby10              [8][3],
-    input var  [ 15:0] ctrl_fcw                 [8][3],
-    input var  [ 15:0] ctrl_time_offset         [8][3]
+    input var          ctrl_rat                   [8][3],
+    input var          ctrl_scsby15               [8][3],
+    input var  [  3:0] ctrl_bwby10                [8][3],
+    input var  [ 15:0] ctrl_fcw                   [8][3],
+    input var  [ 15:0] ctrl_time_offset           [8][3]
 );
 
 
@@ -157,6 +199,27 @@ module prach_top (
       .dout_di (fft_dout_di),
       .dout_dv (fft_dout_dv),
       .sync_out(fft_sync_out)
+  );
+
+  prach_framer u_framer (
+      .clk                      (clk_eth_xran),
+      .rst_n                    (rst_eth_xran_n),
+      //
+      .din_dr                   (din_dr),
+      .din_di                   (din_di),
+      .din_dv                   (din_dv),
+      .din_chn                  (din_chn),
+      .sync_in                  (sync_in),
+      // ORAN
+      .clk_eth_xran             (clk_eth_xran),
+      .clk_eth_xran_n           (clk_eth_xran_n),
+      //
+      .avst_source_data         (avst_source_data),
+      .avst_source_valid        (avst_source_valid),
+      .avst_source_channel      (avst_source_channel),
+      .avst_source_startofpacket(avst_source_startofpacket),
+      .avst_source_endofpacket  (avst_source_endofpacket),
+      .avst_source_ready        (avst_source_ready)
   );
 
 endmodule

@@ -88,7 +88,7 @@ module prach_buffer_ch #(
 
   //
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       done_req <= 1'b0;
     end else if (din_dv && din_chn == 0 && din_sample_k == time_offset + 1536) begin

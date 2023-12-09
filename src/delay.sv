@@ -4,8 +4,9 @@
 `default_nettype none
 
 module delay #(
-    parameter int WIDTH = 32,
-    parameter int DELAY = 1
+    parameter int    WIDTH = 32,
+    parameter int    DELAY = 1,
+    parameter string STYLE = "mlab"
 ) (
     input var              clk,
     input var              rst_n,
@@ -16,9 +17,10 @@ module delay #(
   generate
     if (DELAY > 0) begin : g_delay
 
+      (* ramstyle = STYLE *)
       logic [WIDTH-1:0] delay_pipe[DELAY];
 
-      always_ff @(posedge clk or negedge rst_n) begin
+      always_ff @(posedge clk) begin
         if (~rst_n) begin
           for (int i = 0; i < DELAY; i++) begin
             delay_pipe[i] <= '0;

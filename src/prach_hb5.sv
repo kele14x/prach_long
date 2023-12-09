@@ -22,7 +22,12 @@ module prach_hb5 (
   localparam int NumChannelUsed = 48;
   localparam int NumUniqCoe = 4;
   // fi(1, 18, 17)
-  localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{-18'sd616, 18'sd2989, -18'sd9818, 18'sd40178};
+  localparam logic signed [17:0] UniqCoe[NumUniqCoe] = '{
+      -18'sd616,
+      18'sd2989,
+      -18'sd9818,
+      18'sd40178
+  };
 
   localparam logic signed [35:0] Rng = 1 << 16;
 
@@ -30,7 +35,9 @@ module prach_hb5 (
   localparam int Delay1 = 150;
   localparam int Delay2 = 337;
 
+  (* ramstyle = "mlab" *)
   logic [15:0] xp1[Delay1];
+  (* ramstyle = "mlab" *)
   logic [15:0] xp2[Delay2];
 
   logic signed [15:0] ay1;
@@ -79,6 +86,9 @@ module prach_hb5 (
 
   logic signed [35:0] result1;
   logic signed [35:0] result2;
+
+  logic signed [35:0] result1_d;
+  logic signed [35:0] result2_d;
 
   logic signed [35:0] dq;
 
@@ -147,10 +157,10 @@ module prach_hb5 (
   // DSP3
 
   always_ff @(posedge clk) begin
-    cy1 <= xp2[97];
+    cy1 <= xp2[96];
     cy2 <= cy1;
     cy3 <= cy2;
-    cz1 <= xp2[241];
+    cz1 <= xp2[240];
     cz2 <= cz1;
     cz3 <= cz2;
   end
@@ -166,10 +176,10 @@ module prach_hb5 (
   // DSP4
 
   always_ff @(posedge clk) begin
-    dy1 <= xp2[145];
+    dy1 <= xp2[144];
     dy2 <= dy1;
     dy3 <= dy2;
-    dz1 <= xp2[193];
+    dz1 <= xp2[192];
     dz2 <= dz1;
     dz3 <= dz2;
   end
@@ -183,11 +193,16 @@ module prach_hb5 (
   end
 
   always_ff @(posedge clk) begin
-    result2 <= result1 + cmult + dmult;
+    result2 <= cmult + dmult;
   end
 
   always_ff @(posedge clk) begin
-    dq <= result2 + $signed({xp1[149], 16'b0});
+    result1_d <= result1;
+    result2_d <= result2;
+  end
+
+  always_ff @(posedge clk) begin
+    dq <= result1_d + result2_d + $signed({xp1[149], 16'b0});
   end
 
   assign dout_dq = dq[32:17];

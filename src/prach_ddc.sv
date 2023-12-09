@@ -105,6 +105,11 @@ module prach_ddc (
   logic        conv_sync_out;
 
 
+  // Latency:
+  //   u_mixer   :  8
+  //   u_reshape1:  9
+  //   u_hb1     :  6
+
   prach_mixer u_mixer (
       .clk      (clk),
       .rst_n    (rst_n),

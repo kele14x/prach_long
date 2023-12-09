@@ -27,7 +27,7 @@ module prach_conv_nco (
 
   logic [15:0] sin_lut      [2048];
 
-  logic [15:0] cos_addr_pre;
+  logic [10:0] cos_addr_pre;
   logic [10:0] cos_addr;
   logic [10:0] sin_addr;
 
@@ -81,13 +81,13 @@ module prach_conv_nco (
 
   // Phase Accumulator
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       acc <= '0;
     end else if (sync_in) begin
       acc <= '0;
     end else if (din_dv && din_chn == 0) begin
-      acc <= phase_add(acc, 419);
+      acc <= phase_add(acc, 432);
     end
   end
 

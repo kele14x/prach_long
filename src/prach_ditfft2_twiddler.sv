@@ -53,7 +53,7 @@ module prach_ditfft2_twiddler #(
     end
   end
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       cnt <= 0;
     end else if (sync_ahead_in) begin

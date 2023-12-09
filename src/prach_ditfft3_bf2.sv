@@ -69,7 +69,7 @@ module prach_ditfft3_bf2 (
 
   // BF
 
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       cnt <= 0;
     end else if (sync_in_d) begin

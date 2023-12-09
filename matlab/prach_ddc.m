@@ -5,13 +5,10 @@ if nargin < 2
     fcw = 6768;
 end
 
-% Coarse up sample
-x = upsample(x, 2);
-
 % Mixer
 x_mixer = prach_mixer(x, fcw);
 
-% DDC
+% HB Coefficients
 [hb1, hb2, hb3, hb4, hb5] = prach_hbx();
 
 % HB1
@@ -39,6 +36,9 @@ x_hb5 = filter(hb5, 1, x_hb4);
 x_hb5 = floor((x_hb5 + 2^16 + 1j * 2^16)/2^17);
 x_hb5 = downsample(x_hb5, 2, 1);
 
-y = x_hb5;
+% Conv
+x_conv = prach_conv(x_hb5);
+
+y = x_conv;
 
 end
