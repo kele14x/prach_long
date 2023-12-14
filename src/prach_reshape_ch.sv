@@ -10,13 +10,11 @@ module prach_reshape_ch #(
     //
     input var  [15:0] din_dq1,
     input var  [15:0] din_dq2,
-    input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
     output var [15:0] dout_dp1,
     output var [15:0] dout_dp2,
-    output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
 );
@@ -30,46 +28,22 @@ module prach_reshape_ch #(
   localparam int Latency = SIZE / 2 + 1;
 
   logic        swap_n;
-  logic [ 7:0] cnt;
 
   logic [15:0] din_dq2_d;
-  logic        din_dv_d;
-  logic [ 7:0] din_chn_d;
-  logic        sync_in_d;
 
   logic [15:0] delay_in;
   logic [15:0] delay_out;
 
-  always_ff @(posedge clk) begin
-    if (~rst_n) begin
-      swap_n <= 1'b0;
-    end else if (sync_in && din_chn % (SIZE / 2) == SIZE / 2 - 1) begin
-      swap_n <= 1'b1;
-    end else if (sync_in) begin
-      swap_n <= 1'b0;
-    end else if (din_chn % (SIZE / 2) == SIZE / 2 - 1) begin
-      swap_n <= ~swap_n;
-    end
-  end
+  assign swap_n = din_chn[$clog2(SIZE/2)];
 
   delay #(
       .WIDTH(16),
       .DELAY(SIZE / 2)
-  ) u_delay (
+  ) u_delay_dq2 (
       .clk  (clk),
       .rst_n(1'b1),
       .din  ({din_dq2}),
       .dout ({din_dq2_d})
-  );
-
-  delay #(
-      .WIDTH(10),
-      .DELAY(SIZE / 2)
-  ) u_delay_dv (
-      .clk  (clk),
-      .rst_n(1'b1),
-      .din  ({sync_in, din_chn, din_dv}),
-      .dout ({sync_in_d, din_chn_d, din_dv_d})
   );
 
   delay #(
@@ -87,7 +61,7 @@ module prach_reshape_ch #(
   end
 
   always_ff @(posedge clk) begin
-    if (swap_n || sync_in_d) begin
+    if (swap_n) begin
       dout_dp2 <= din_dq1;
     end else begin
       dout_dp2 <= din_dq2_d;
@@ -95,20 +69,26 @@ module prach_reshape_ch #(
   end
 
   always_comb begin
-    if (swap_n || sync_in_d) begin
+    if (swap_n) begin
       delay_in = din_dq2_d;
     end else begin
       delay_in = din_dq1;
     end
   end
 
-  assign cnt = swap_n ? din_chn_d : din_chn_d | (SIZE / 2);
-
   always_ff @(posedge clk) begin
-    dout_dv  <= din_dv_d && cnt < 48;
-    dout_chn <= cnt;
-    sync_out <= sync_in_d;
+    dout_chn <= din_chn - (Latency - 1);
   end
+
+  delay #(
+      .WIDTH(1),
+      .DELAY(Latency)
+  ) u_delay_sync (
+      .clk  (clk),
+      .rst_n(1'b1),
+      .din  (sync_in),
+      .dout (sync_out)
+  );
 
 endmodule
 

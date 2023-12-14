@@ -5,7 +5,7 @@ kv = (0:length(x) - 1).';
 
 % Mixer
 phase = floor(fcw/64*kv);
-nco = round(2^14*exp(2j*pi*phase/768));
+nco = round(2^14*exp(2j*pi*phase/1536));
 
 x_mixer = x .* nco;
 x_mixer = floor((x_mixer + 2^13 + 1j * 2^13)/2^14);

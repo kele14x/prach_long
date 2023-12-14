@@ -8,19 +8,15 @@ module prach_reshape1 (
     //
     input var  [15:0] din_dr  [3],
     input var  [15:0] din_di  [3],
-    input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
     output var [15:0] dout_dp1[3],
     output var [15:0] dout_dp2[3],
-    output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
 );
 
-
-  logic       dout_dv_s [3];
   logic [7:0] dout_chn_s[3];
   logic       sync_out_s[3];
 
@@ -34,20 +30,17 @@ module prach_reshape1 (
           //
           .din_dq1 (din_dr[i]),
           .din_dq2 (din_di[i]),
-          .din_dv  (din_dv),
           .din_chn (din_chn),
           .sync_in (sync_in),
           //
           .dout_dp1(dout_dp1[i]),
           .dout_dp2(dout_dp2[i]),
-          .dout_dv (dout_dv_s[i]),
           .dout_chn(dout_chn_s[i]),
           .sync_out(sync_out_s[i])
       );
     end
   endgenerate
 
-  assign dout_dv  = dout_dv_s[0];
   assign dout_chn = dout_chn_s[0];
   assign sync_out = sync_out_s[0];
 

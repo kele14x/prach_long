@@ -8,12 +8,10 @@ module prach_hb5 (
     //
     input var  [15:0] din_dp1,
     input var  [15:0] din_dp2,
-    input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
     output var [15:0] dout_dq,
-    output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
 );
@@ -95,7 +93,7 @@ module prach_hb5 (
   // Data delay line
 
   always_ff @(posedge clk) begin
-    if (din_dv) begin
+    if (din_chn < 48) begin
       xp1[0] <= din_dp1;
       for (int i = 1; i < Delay1; i++) begin
         xp1[i] <= xp1[i-1];
@@ -104,7 +102,7 @@ module prach_hb5 (
   end
 
   always_ff @(posedge clk) begin
-    if (din_dv) begin
+    if (din_chn < 48) begin
       xp2[0] <= din_dp2;
       for (int i = 1; i < Delay2; i++) begin
         xp2[i] <= xp2[i-1];
@@ -208,14 +206,18 @@ module prach_hb5 (
   assign dout_dq = dq[32:17];
 
   delay #(
-      .WIDTH(10),
+      .WIDTH(1),
       .DELAY(Latency)
   ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  ({sync_in, din_dv, din_chn}),
-      .dout ({sync_out, dout_dv, dout_chn})
+      .din  (sync_in),
+      .dout (sync_out)
   );
+
+  always_ff @(posedge clk) begin
+    dout_chn <= din_chn - (Latency - 1);
+  end
 
 endmodule
 

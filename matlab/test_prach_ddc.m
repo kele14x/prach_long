@@ -26,8 +26,8 @@ plot(abs(fft(r)));
 hold on;
 plot(abs(fft(y)));
 
-evm = rms(e) / rms(r);
-assert(evm < 0.01);
-
 writematrix([real(x), imag(x)], './test/prach_ddc_in.txt');
 writematrix([real(y), imag(y)], './test/prach_ddc_out.txt');
+
+evm = rms(e) / rms(r);
+assert(evm < 0.01);

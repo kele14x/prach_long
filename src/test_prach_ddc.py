@@ -11,13 +11,12 @@ async def reset(dut):
     for i in range(3):
         dut.din_dr[i].value = 0
         dut.din_di[i].value = 0
-    dut.din_dv.value = 0
     dut.din_chn.value = 0
     dut.sync_in.value = 0
 
     for i in range(3):
         for j in range(8):
-            dut.ctrl_fcw[i][j].value = 6768 if i == 0 and j == 0 else 0
+            dut.ctrl_fcw[i][j].value = 13536 if i == 0 and j == 0 else 0
 
     await Timer(100, units="ns")
     dut.rst_n.value = 1
@@ -36,8 +35,7 @@ async def drive(dut, dr, di, chn, sync=False):
                 c = j + k * 8
                 dut.din_dr[k].value = int(dr[i]) if c == chn else 0
                 dut.din_di[k].value = int(di[i]) if c == chn else 0
-            dut.din_dv.value = 1
-            dut.din_chn.value = j
+            dut.din_chn.value = (j + i * 8) % 256
             dut.sync_in.value = 1 if i == 0 and j == 0 and sync else 0
             await clkedge
 
@@ -54,7 +52,7 @@ async def sample_of(dut, n, chn, wait_sync=False):
     print("SYNC!")
 
     while i < n:
-        if dut.dout_dv.value == 1 and dut.dout_chn == chn:
+        if dut.dout_chn == int(chn / 8) * 16 + chn % 8:
             i = i + 1
             if dut.dout_dr.value.is_resolvable and dut.dout_di.value.is_resolvable:
                 yield (
@@ -75,11 +73,15 @@ async def test_prach_ddc(dut):
     await cocotb.start_soon(drive(dut, np.zeros(512), np.zeros(512), 0, True))
 
     # Test input
-    x = np.loadtxt("../matlab/test/prach_ddc_in.txt", delimiter=',')
-    xr = x[:,0]
-    xi = x[:,1]
+    x = np.loadtxt("../matlab/test/prach_ddc_in.txt", delimiter=",")
+    xr = x[:, 0]
+    xi = x[:, 1]
     cocotb.start_soon(drive(dut, xr, xi, 0, True))
 
     # Test output
-    res = [(x, y) async for (x, y) in sample_of(dut, 10, 0, True)]
+    y = np.loadtxt("../matlab/test/prach_ddc_out.txt", delimiter=",")
+    res = [(x, y) async for (x, y) in sample_of(dut, 1536, 0, True)]
+    res = np.array(res)
     print(res)
+
+    assert(np.all(y == res))

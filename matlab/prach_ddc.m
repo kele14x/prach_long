@@ -2,7 +2,7 @@ function y = prach_ddc(x, fcw)
 % PRACH_DDC Bit accurate prach_ddc model
 
 if nargin < 2
-    fcw = 6768;
+    fcw = 13536;
 end
 
 % Mixer

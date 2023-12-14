@@ -8,12 +8,10 @@ module prach_hb2_ch (
     //
     input var  [15:0] din_dp1,
     input var  [15:0] din_dp2,
-    input var         din_dv,
     input var  [ 7:0] din_chn,
     input var         sync_in,
     //
     output var [15:0] dout_dq,
-    output var        dout_dv,
     output var [ 7:0] dout_chn,
     output var        sync_out
 );
@@ -125,14 +123,18 @@ module prach_hb2_ch (
   assign dout_dq = dq[32:17];
 
   delay #(
-      .WIDTH(10),
+      .WIDTH(1),
       .DELAY(Latency)
   ) u_delay (
       .clk  (clk),
       .rst_n(1'b1),
-      .din  ({sync_in, din_dv, din_chn}),
-      .dout ({sync_out, dout_dv, dout_chn})
+      .din  (sync_in),
+      .dout (sync_out)
   );
+
+  always_ff @(posedge clk) begin
+    dout_chn <= din_chn - (Latency - 1);
+  end
 
 endmodule
 
