@@ -3,32 +3,37 @@
 `default_nettype none
 
 module prach_buffer_readout (
-    input var         clk,
-    input var         rst_n,
+    input var          clk,
+    input var          rst_n,
     // Buffer
-    input var         done_req[3][8],
-    output var        done_ack[3][8],
+    input var  [119:0] ap_hdr  [3][8],
+    input var          ap_req  [3][8],
+    output var         ap_ack  [3][8],
     //
-    output var [10:0] rd_addr,
-    output var        rd_en   [3][8],
-    input var  [31:0] rd_data [3][8],
+    output var [ 10:0] rd_addr,
+    output var         rd_en   [3][8],
+    input var  [ 31:0] rd_data [3][8],
     // FFT
-    output var [15:0] dout_dr,
-    output var [15:0] dout_di,
-    output var        dout_dv,
-    output var        sync_out
+    output var [ 15:0] dout_dr,
+    output var [ 15:0] dout_di,
+    output var         dout_dv,
+    output var         sync_out,
+    output var [119:0] hdr_out
 );
 
-  logic        busy;
-  logic        done;
+  logic         busy;
+  logic         done;
+  logic [119:0] hdr_r;
 
-  logic        req        [24];
-  logic        ack        [24];
+  logic [119:0] hdr         [24];
+  logic         req         [24];
+  logic         ack         [24];
 
-  logic [10:0] rd_cnt;
-  logic [10:0] rd_cnt_next;
 
-  logic [31:0] rd_data_or;
+  logic [ 10:0] rd_cnt;
+  logic [ 10:0] rd_cnt_next;
+
+  logic [ 31:0] rd_data_or;
 
   // First channel first arbiter
   generate
@@ -54,6 +59,14 @@ module prach_buffer_readout (
   endgenerate
 
   always_ff @(posedge clk) begin
+    for (int i = 0; i < 24; i++) begin
+      if (req[i] && ~busy) begin
+        hdr_r <= hdr[i];
+      end
+    end
+  end
+
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       busy <= 1'b0;
     end else if (busy) begin
@@ -65,7 +78,6 @@ module prach_buffer_readout (
       end
     end
   end
-
 
   // Read
 
@@ -94,14 +106,16 @@ module prach_buffer_readout (
     end
   end
 
+  // TODO: fix rd_en logic
   generate
     for (genvar cc = 0; cc < 3; cc++) begin : g_cc
       for (genvar ant = 0; ant < 8; ant++) begin : g_ant
 
-        assign req[cc*8+ant] = done_req[cc][ant];
+        assign req[cc*8+ant]   = ap_req[cc][ant];
+        assign hdr[cc*8+ant]   = ap_hdr[cc][ant];
 
-        assign done_ack[cc][ant] = ack[cc*8+ant];
-        assign rd_en[cc][ant]    = ack[cc*8+ant];
+        assign ap_ack[cc][ant] = ack[cc*8+ant];
+        assign rd_en[cc][ant]  = ack[cc*8+ant];
 
       end
     end

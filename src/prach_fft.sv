@@ -2,19 +2,23 @@
 //
 `default_nettype none
 
-module prach_fft (
-    input var         clk,
-    input var         rst_n,
+module prach_fft #(
+    parameter int HDR_WIDTH = 120
+) (
+    input var                  clk,
+    input var                  rst_n,
     //
-    input var  [15:0] din_dr,
-    input var  [15:0] din_di,
-    input var         din_dv,
-    input var         sync_in,
+    input var  [         15:0] din_dr,
+    input var  [         15:0] din_di,
+    input var                  din_dv,
+    input var                  sync_in,
+    input var  [HDR_WIDTH-1:0] hdr_in,
     //
-    output var [15:0] dout_dr,
-    output var [15:0] dout_di,
-    output var        dout_dv,
-    output var        sync_out
+    output var [         15:0] dout_dr,
+    output var [         15:0] dout_di,
+    output var                 dout_dv,
+    output var                 sync_out,
+    output var [HDR_WIDTH-1:0] hdr_out
 );
 
   localparam int NumFftStage = 10;
@@ -96,6 +100,40 @@ module prach_fft (
   assign dout_di  = s0_di[NumFftStage];
   assign dout_dv  = s0_dv[NumFftStage];
   assign sync_out = s0_sync[NumFftStage];
+
+  // Assume header FIFO will never full
+  sync_fifo #(
+      .ADD_RAM_OUTPUT_REGISTER("ON"),
+      .ALMOST_EMPTY_VALUE     (1),
+      .ALMOST_FULL_VALUE      (1),
+      .ENABLE_SCLR            ("OFF"),
+      .ENABLE_ACLR            ("OFF"),
+      .ALLOW_RWCYCLE_WHEN_FULL("OFF"),
+      .ENABLE_SHOWAHEAD       ("ON"),
+      .DATA_WIDTH             (HDR_WIDTH),
+      .ADDR_WIDTH             (5),
+      .OVERFLOW_CHECKING      ("ON"),
+      .UNDERFLOW_CHECKING     ("ON"),
+      .MAXIMUM_DEPTH          (32),
+      .BYTE_SIZE              (8),
+      .BYTE_EN_WIDTH          (HDR_WIDTH/8)
+  ) u_hdr_fifo (
+      .clock       (clk),
+      .sclr        (1'b0),
+      .aclr        (1'b0),
+      .usedw       (  /* not used */),
+      // Write
+      .wrreq       (sync_in),
+      .data        (hdr_in),
+      .byteena     (1'b1),
+      .full        (  /* not used */),
+      .almost_full (  /* not used */),
+      // Read
+      .rdreq       (sync_out),
+      .q           (hdr_out),
+      .empty       (  /* not used */),
+      .almost_empty(  /* not used */)
+  );
 
 endmodule
 

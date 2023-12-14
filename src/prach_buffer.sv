@@ -3,42 +3,46 @@
 `default_nettype none
 
 module prach_buffer (
-    input var         clk,
-    input var         rst_n,
+    input var          clk,
+    input var          rst_n,
     //
-    input var  [15:0] din_dr,
-    input var  [15:0] din_di,
-    input var         din_dv,
-    input var  [ 7:0] din_chn,
-    input var         sync_in,
+    input var  [ 15:0] din_dr,
+    input var  [ 15:0] din_di,
+    input var  [  7:0] din_chn,
+    input var          sync_in,
     //
-    output var [15:0] dout_dr,
-    output var [15:0] dout_di,
-    output var        dout_dv,
-    output var        sync_out,
+    output var [ 15:0] dout_dr,
+    output var [ 15:0] dout_di,
+    output var         dout_dv,
+    output var         sync_out,
+    output var [119:0] hdr_out,
+    // C-Plane
+    input var          clk_eth_xran,
+    input var          rst_eth_xran_n,
     //
-    input var  [15:0] ctrl_time_offset[3][8]
+    input var          c_valid       [3][8],
+    input var  [119:0] c_header,
+    input var  [ 19:0] c_time_offset,
+    input var  [  3:0] c_num_symbol
 );
 
-  logic [15:0] din_dr_d;
-  logic [15:0] din_di_d;
-  logic        din_dv_d;
-  logic [ 7:0] din_chn_d;
+  logic [ 15:0] din_dr_d;
+  logic [ 15:0] din_di_d;
+  logic [  7:0] din_chn_d;
 
-  logic [15:0] din_sample_k;
+  logic [ 15:0] din_sample_k;
 
-  logic        done_req     [3][8];
-  logic        done_ack     [3][8];
+  logic [119:0] ap_hdr       [3][8];
+  logic         ap_req       [3][8];
+  logic         ap_ack       [3][8];
 
-  logic [10:0] rd_addr;
-  logic        rd_en        [3][8];
-  logic [31:0] rd_data      [3][8];
-
+  logic [ 10:0] rd_addr;
+  logic         rd_en        [3][8];
+  logic [ 31:0] rd_data      [3][8];
 
   always_ff @(posedge clk) begin
     din_dr_d  <= din_dr;
     din_di_d  <= din_di;
-    din_dv_d  <= din_dv;
     din_chn_d <= din_chn;
   end
 
@@ -57,23 +61,29 @@ module prach_buffer (
         prach_buffer_ch #(
             .CHANNEL(cc * 16 + ant)
         ) u_ch (
-            .clk             (clk),
-            .rst_n           (rst_n),
+            .clk           (clk),
+            .rst_n         (rst_n),
             //
-            .din_dr          (din_dr_d),
-            .din_di          (din_di_d),
-            .din_dv          (din_dv_d),
-            .din_chn         (din_chn_d),
-            .din_sample_k    (din_sample_k),
-            // Buffer
-            .done_req        (done_req[cc][ant]),
-            .done_ack        (done_ack[cc][ant]),
+            .din_dr        (din_dr_d),
+            .din_di        (din_di_d),
+            .din_chn       (din_chn_d),
+            .din_sample_k  (din_sample_k),
             //
-            .rd_addr         (rd_addr),
-            .rd_en           (rd_en[cc][ant]),
-            .rd_data         (rd_data[cc][ant]),
+            .ap_hdr        (ap_hdr[cc][ant]),
+            .ap_req        (ap_req[cc][ant]),
+            .ap_ack        (ap_ack[cc][ant]),
             //
-            .ctrl_time_offset(ctrl_time_offset[cc][ant])
+            .rd_addr       (rd_addr),
+            .rd_en         (rd_en[cc][ant]),
+            .rd_data       (rd_data[cc][ant]),
+            // C-Plane
+            .clk_eth_xran  (clk_eth_xran),
+            .rst_eth_xran_n(rst_eth_xran_n),
+            //
+            .c_valid       (c_valid[cc][ant]),
+            .c_header      (c_header),
+            .c_time_offset (c_time_offset),
+            .c_num_symbol  (c_num_symbol)
         );
 
       end
@@ -84,8 +94,9 @@ module prach_buffer (
       .clk     (clk),
       .rst_n   (rst_n),
       // Buffer
-      .done_req(done_req),
-      .done_ack(done_ack),
+      .ap_hdr  (ap_hdr),
+      .ap_req  (ap_req),
+      .ap_ack  (ap_ack),
       //
       .rd_addr (rd_addr),
       .rd_en   (rd_en),
@@ -94,7 +105,8 @@ module prach_buffer (
       .dout_dr (dout_dr),
       .dout_di (dout_di),
       .dout_dv (dout_dv),
-      .sync_out(sync_out)
+      .sync_out(sync_out),
+      .hdr_out (hdr_out)
   );
 
 endmodule
