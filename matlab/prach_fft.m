@@ -8,12 +8,12 @@ K = 3 * 2.^(1:log2(nFFT/3));
 t = zeros(nFFT, nStage);
 
 % Stage 1
-t(:,1) = ditfft3(x, 3);
+t(:,1) = prach_ditfft3(x);
 
 % Stage 2 ~ N
 for i = 1:log2(nFFT/3)
     n = K(i);
-    t(:,i+1) = ditfft2(t(:,i), n);
+    t(:,i+1) = prach_ditfft2(t(:,i), n);
 end
 
 y = t(:,nStage);
