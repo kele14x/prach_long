@@ -43,8 +43,10 @@ VERILOG_SOURCES += $(PWD)/../src/prach_top.sv
 
 VERILOG_SOURCES += $(PWD)/tb_prach_top.sv
 
-TOPLEVEL ?= tb_prach_top
+TOPLEVEL ?= prach_fft
 
-MODULE ?= test_prach_top
+MODULE ?= test_prach_fft
+
+EXTRA_ARGS ?= "-L altera_mf_ver"
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

@@ -24,15 +24,18 @@ module prach_fft #(
   localparam int NumFftStage = 10;
   localparam int NumFftPoints = 3 * 2 ** (NumFftStage - 1);
 
-  localparam int Latency = 1582;
+  localparam int Latency = 1588;
 
-  logic signed [17:0] s0_dr        [NumFftStage+1];
-  logic signed [17:0] s0_di        [NumFftStage+1];
-  logic               s0_dv        [NumFftStage+1];
-  logic               s0_sync      [NumFftStage+1];
+  logic signed [         17:0] s0_dr        [NumFftStage+1];
+  logic signed [         17:0] s0_di        [NumFftStage+1];
+  logic                        s0_dv        [NumFftStage+1];
+  logic                        s0_sync      [NumFftStage+1];
 
-  logic               s0_dv_ahead  [NumFftStage+1];
-  logic               s0_sync_ahead[NumFftStage+1];
+  logic                        s0_dv_ahead  [NumFftStage+1];
+  logic                        s0_sync_ahead[NumFftStage+1];
+
+  logic        [HDR_WIDTH-1:0] hdr_out_s;
+
 
   assign s0_dr[0]         = $signed(din_dr);
   assign s0_di[0]         = $signed(din_di);
@@ -96,44 +99,43 @@ module prach_fft #(
     end
   endgenerate
 
-  assign dout_dr  = s0_dr[NumFftStage];
-  assign dout_di  = s0_di[NumFftStage];
-  assign dout_dv  = s0_dv[NumFftStage];
-  assign sync_out = s0_sync[NumFftStage];
 
   // Assume header FIFO will never full
-  sync_fifo #(
-      .ADD_RAM_OUTPUT_REGISTER("ON"),
-      .ALMOST_EMPTY_VALUE     (1),
-      .ALMOST_FULL_VALUE      (1),
-      .ENABLE_SCLR            ("OFF"),
-      .ENABLE_ACLR            ("OFF"),
-      .ALLOW_RWCYCLE_WHEN_FULL("OFF"),
-      .ENABLE_SHOWAHEAD       ("ON"),
-      .DATA_WIDTH             (HDR_WIDTH),
-      .ADDR_WIDTH             (5),
-      .OVERFLOW_CHECKING      ("ON"),
-      .UNDERFLOW_CHECKING     ("ON"),
-      .MAXIMUM_DEPTH          (32),
-      .BYTE_SIZE              (8),
-      .BYTE_EN_WIDTH          (HDR_WIDTH/8)
-  ) u_hdr_fifo (
+
+  scfifo #(
+      .lpm_width    (HDR_WIDTH),
+      .lpm_numwords (16),
+      .lpm_showahead("ON")
+  ) u_scfifo (
       .clock       (clk),
-      .sclr        (1'b0),
-      .aclr        (1'b0),
+      .aclr        (~rst_n),
+      .sclr        (~rst_n),
+      .eccstatus   (  /* not used */),
       .usedw       (  /* not used */),
       // Write
       .wrreq       (sync_in),
       .data        (hdr_in),
-      .byteena     (1'b1),
-      .full        (  /* not used */),
+      .full        (  /* assume never full */),
       .almost_full (  /* not used */),
       // Read
-      .rdreq       (sync_out),
-      .q           (hdr_out),
+      .rdreq       (s0_sync[NumFftStage]),
+      .q           (hdr_out_s),
       .empty       (  /* not used */),
       .almost_empty(  /* not used */)
   );
+
+  always_ff @(posedge clk) begin
+    dout_dr  <= s0_dr[NumFftStage];
+    dout_di  <= s0_di[NumFftStage];
+    dout_dv  <= s0_dv[NumFftStage];
+    sync_out <= s0_sync[NumFftStage];
+  end
+
+  always_ff @(posedge clk) begin
+    if (s0_sync[NumFftStage]) begin
+      hdr_out <= hdr_out_s;
+    end
+  end
 
 endmodule
 

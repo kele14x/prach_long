@@ -33,51 +33,26 @@ module prach_buffer_ch #(
   // C-Plane message
 
   logic         c_valid_s;
+  logic         c_ready_s;
   logic [119:0] c_header_s;
   logic [ 19:0] c_time_offset_s;
   logic [  3:0] c_num_symbol_s;
 
-  logic         fifo_rd_req;
-  logic         fifo_rd_empty;
-
-  // Assume header FIFO will never full
-  async_fifo #(
-      .DATA_WIDTH_A           (144),
-      .ADDR_WIDTH_A           (5),
-      .DATA_WIDTH_B           (144),
-      .ADDR_WIDTH_B           (5),
-      .RDSYNC_DELAYPIPE       (2),
-      .WRSYNC_DELAYPIPE       (2),
-      .ENABLE_SHOWAHEAD       ("ON"),
-      .UNDERFLOW_CHECKING     ("ON"),
-      .OVERFLOW_CHECKING      ("ON"),
-      .ADD_USEDW_MSB_BIT      ("ON"),
-      .WRITE_ACLR_SYNCH       ("OFF"),
-      .READ_ACLR_SYNCH        ("OFF"),
-      .ADD_RAM_OUTPUT_REGISTER("ON"),
-      .MAXIMUM_DEPTH          (32),
-      .BYTE_EN_WIDTH          (18),
-      .BYTE_SIZE              (8)
-  ) u_cp_fifo (
-      .aclr   (1'b0),
+  prach_buffer_cp_fifo u_cp_fifo (
+      .rst_n   (rst_eth_xran_n),
       //
-      .wrclk  (clk_eth_xran),
-      .wrreq  (c_valid),
-      .byteena('1),
-      .wrfull (),
-      .data   ({c_header, c_time_offset, c_num_symbol}),
-      .wrempty(),
-      .wrusedw(),
+      .wr_clk  (clk_eth_xran),
       //
-      .rdclk  (clk),
-      .rdreq  (fifo_rd_req),
-      .rdfull (),
-      .rdusedw(),
-      .rdempty(fifo_rd_empty),
-      .q      ({c_header_s, c_time_offset_s, c_num_symbol_s})
+      .wr_valid(c_valid),
+      .wr_data ({c_num_symbol, c_time_offset, c_header}),
+      .wr_ready( /* assume never full*/),
+      //
+      .rd_clk  (clk),
+      //
+      .rd_data ({c_num_symbol_s, c_time_offset_s, c_header_s}),
+      .rd_valid(c_valid_s),
+      .rd_ready(c_ready_s)
   );
-
-  assign c_valid_s = ~fifo_rd_empty;
 
   // RAM
 
@@ -129,7 +104,7 @@ module prach_buffer_ch #(
     end
   end
 
-  assign fifo_rd_req = wr_cnt == 1536 * c_num_symbol_s - 1;
+  assign c_ready_s = wr_cnt == 1536 * c_num_symbol_s - 1;
 
   always_ff @(posedge clk) begin
     if (~rst_n) begin
