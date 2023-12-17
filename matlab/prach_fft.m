@@ -14,7 +14,6 @@ t(:, 1) = prach_ditfft3(x);
 for i = 1:log2(nFFT/3)
     n = K(i);
     t(:, i+1) = prach_ditfft2(t(:, i), n, rem(i, 2) == 1);
-    fprintf('s = %d\n', rem(i, 2) == 1);
 end
 
 y = t(:, nStage);
