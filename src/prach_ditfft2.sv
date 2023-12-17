@@ -3,7 +3,8 @@
 `default_nettype none
 
 module prach_ditfft2 #(
-    parameter int NUM_FFT_LENGTH = 6
+    parameter int NUM_FFT_LENGTH = 6,
+    parameter bit SCALE          = 0
 ) (
     input var         clk,
     input var         rst_n,
@@ -52,7 +53,8 @@ module prach_ditfft2 #(
   );
 
   prach_ditfft2_bf #(
-      .NUM_FFT_LENGTH(NUM_FFT_LENGTH)
+      .NUM_FFT_LENGTH(NUM_FFT_LENGTH),
+      .SCALE         (SCALE)
   ) u_bf (
       .clk           (clk),
       .rst_n         (rst_n),

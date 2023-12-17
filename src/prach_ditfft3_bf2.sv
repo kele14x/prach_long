@@ -19,6 +19,8 @@ module prach_ditfft3_bf2 (
 
   // x0, x1, x2 -> x0 + x1, x0 - 0.5 * x1, 0.8660j * x2
 
+  localparam signed [35:0] RND = 1 << 15;
+
   logic signed [17:0] din_dr_d;
   logic signed [17:0] din_di_d;
   logic               din_dv_d;
@@ -26,20 +28,27 @@ module prach_ditfft3_bf2 (
 
   logic        [ 1:0] cnt;
 
-  logic signed [16:0] x1r;
-  logic signed [16:0] x1i;
+  logic signed [17:0] x1r;
+  logic signed [17:0] x1i;
 
-  logic signed [16:0] ay1;
-  logic signed [16:0] ay2;
-  logic signed [16:0] ay3;
+  logic signed [17:0] ay1;
+  logic signed [17:0] ay2;
+  logic signed [17:0] ay3;
 
   logic signed [35:0] amult;
 
-  logic signed [16:0] by1;
-  logic signed [16:0] by2;
-  logic signed [16:0] by3;
+  logic signed [17:0] by1;
+  logic signed [17:0] by2;
+  logic signed [17:0] by3;
 
-  logic signed [35:0] bmult;
+  logic signed [37:0] bmult;
+
+  function automatic logic signed [17:0] op1(input logic signed [17:0] a,
+                                             input logic signed [17:0] b);
+    logic signed [18:0] t;
+    t = a * 2 - b + 1;
+    return $signed(t[18:1]);
+  endfunction
 
   // DSP1
 
@@ -51,7 +60,7 @@ module prach_ditfft3_bf2 (
 
   // coefficient is -0.866025403784439 as fi(1, 18, 16)
   always_ff @(posedge clk) begin
-    amult <= ay3 * -18'sd56756;
+    amult <= ay3 * -18'sd56756 + RND;
   end
 
   // DSP2
@@ -64,7 +73,7 @@ module prach_ditfft3_bf2 (
 
   // coefficient is 0.866025403784439 as fi(1, 18, 16)
   always_ff @(posedge clk) begin
-    bmult <= by3 * 18'sd56756;
+    bmult <= by3 * 18'sd56756 + RND;
   end
 
   // BF
@@ -85,8 +94,8 @@ module prach_ditfft3_bf2 (
       x1i <= din_di_d;
     end else begin
       // x0 - x1 / 2
-      x1r <= (x1r - din_dr_d / 2) + (din_dr_d[0] ? 1 : 0);
-      x1i <= (x1i - din_di_d / 2) + (din_di_d[0] ? 1 : 0);
+      x1r <= op1(x1r, din_dr_d);
+      x1i <= op1(x1i, din_di_d);
     end
   end
 

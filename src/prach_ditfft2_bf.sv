@@ -3,7 +3,8 @@
 `default_nettype none
 
 module prach_ditfft2_bf #(
-    parameter int NUM_FFT_LENGTH = 6
+    parameter int NUM_FFT_LENGTH = 6,
+    parameter bit SCALE          = 0
 ) (
     input var         clk,
     input var         rst_n,
@@ -35,6 +36,21 @@ module prach_ditfft2_bf #(
   logic signed [            17:0] delay_out_dr;
   logic signed [            17:0] delay_out_di;
 
+
+  function automatic logic signed [17:0] op1(input logic signed [17:0] a,
+                                             input logic signed [17:0] b);
+    logic signed [18:0] t;
+    t = a + b + 1;
+    return $signed(t[18:1]);
+  endfunction
+
+  function automatic logic signed [17:0] op2(input logic signed [17:0] a,
+                                             input logic signed [17:0] b);
+    logic signed [18:0] t;
+    t = a - b + 1;
+    return $signed(t[18:1]);
+  endfunction
+
   always_ff @(posedge clk) begin
     if (~rst_n) begin
       cnt <= 0;
@@ -51,16 +67,16 @@ module prach_ditfft2_bf #(
       delay_in_di = din_di;
     end else begin
       // x0s - x1s
-      delay_in_dr = delay_out_dr - din_dr;
-      delay_in_di = delay_out_di - din_di;
+      delay_in_dr = SCALE ? op2(delay_out_dr, din_dr) : delay_out_dr - din_dr;
+      delay_in_di = SCALE ? op2(delay_out_di, din_di) : delay_out_di - din_di;
     end
   end
 
   always_ff @(posedge clk) begin
     if (cnt >= NUM_FFT_LENGTH / 2) begin
       // x1 + x2
-      dout_dr <= delay_out_dr + din_dr;
-      dout_di <= delay_out_di + din_di;
+      dout_dr <= SCALE ? op1(delay_out_dr, din_dr) : delay_out_dr + din_dr;
+      dout_di <= SCALE ? op1(delay_out_di, din_di) : delay_out_di + din_di;
     end else begin
       dout_dr <= delay_out_dr;
       dout_di <= delay_out_di;

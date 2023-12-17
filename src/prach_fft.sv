@@ -25,6 +25,7 @@ module prach_fft #(
   localparam int NumFftPoints = 3 * 2 ** (NumFftStage - 1);
 
   localparam int Latency = 1588;
+  // 9, 8, 11, 17, 29, 53, 101, 197, 389, 773, 1
 
   logic signed [         17:0] s0_dr        [NumFftStage+1];
   logic signed [         17:0] s0_di        [NumFftStage+1];
@@ -74,7 +75,8 @@ module prach_fft #(
     for (genvar i = 0; i < NumFftStage - 1; i++) begin : g_dit2
 
       prach_ditfft2 #(
-          .NUM_FFT_LENGTH(3 * 2 ** (i + 1))
+          .NUM_FFT_LENGTH(3 * 2 ** (i + 1)),
+          .SCALE         (i % 2 == 0)
       ) u_ditfft2 (
           .clk           (clk),
           .rst_n         (rst_n),
