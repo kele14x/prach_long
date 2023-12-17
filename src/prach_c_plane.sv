@@ -133,14 +133,23 @@ module prach_c_plane (
         rx_c_filterIndex_d == 4'b0001 &&
         rx_c_sectionType_d == 8'd3);
 
+
   always_ff @(posedge clk) begin
     if (valid_prach_msg) begin
-      c_frequency_offset <= rx_c_freqOffset_d;
+      // O-RAN.WG4.CUS 7.2.3.2
+      c_frequency_offset <= -$signed(rx_c_freqOffset_d) - 864;
+
+      // O-RAN.WG4.CUS 4.4.3
+      // u = 1, 15 kHz SCS
+      // First symbol, Left symbols
+      // 160 + 2048, (144 + 2048) * 6 Ts
       c_time_offset <= rx_c_subframeId * 61440 +
-          rx_c_symbolId * 4096 + rx_c_symbolId_d * 288 + ((rx_c_symbolId_d + 6) % 7) * 32 +
+          rx_c_symbolId * 4096 + rx_c_symbolId_d * 288 + ((rx_c_symbolId_d + 6) / 7) * 32 +
           + rx_c_timeOffset_d * 2 + rx_c_cpLength_d * 2;
+
       c_num_symbol <= rx_c_numSymbol_d;
-      //
+
+      // U-Plane header
       c_header <= {
         16'b0,  // size
         rx_c_rtc_id_d,

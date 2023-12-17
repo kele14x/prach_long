@@ -88,28 +88,34 @@ module prach_buffer_ch #(
   assign rd_data = rd_data_r3;
 
   // Write FSM
+  // Write 1 or 2 symbols to buffer, the MSB of address is bank number
 
   logic        wr_run;
-  logic [11:0] wr_cnt;
+  logic        wr_symbol;
+  logic [10:0] wr_cnt;
 
   logic [15:0] r_seq_id;
+
+  logic        wr_start;
+  logic        wr_stop;
+
+  assign wr_start = c_valid_s && (din_sample_k == c_time_offset_s[19:4]) && (din_chn == CHANNEL);
+  assign wr_stop = (wr_cnt == 1535) && (wr_symbol == c_num_symbol_s > 0) && (din_chn == CHANNEL);
 
   always_ff @(posedge clk) begin
     if (~rst_n) begin
       wr_run <= 1'b0;
-    end else if (c_valid_s && din_sample_k == c_time_offset_s[19:4]) begin
+    end else if (wr_start) begin
       wr_run <= 1'b1;
-    end else if (wr_cnt == 1536 * c_num_symbol_s - 1 && din_chn == CHANNEL) begin
+    end else if (wr_stop) begin
       wr_run <= 1'b0;
     end
   end
 
-  assign c_ready_s = wr_cnt == 1536 * c_num_symbol_s - 1;
+  assign c_ready_s = wr_stop;
 
   always_ff @(posedge clk) begin
-    if (~rst_n) begin
-      wr_cnt <= '0;
-    end else if (wr_cnt == 1536 * c_num_symbol_s - 1 && din_chn == CHANNEL) begin
+    if (wr_cnt == 1535 && din_chn == CHANNEL) begin
       wr_cnt <= '0;
     end else if (wr_run && din_chn == CHANNEL) begin
       wr_cnt <= wr_cnt + 1;
@@ -120,24 +126,36 @@ module prach_buffer_ch #(
     end
   end
 
+  always_ff @(posedge clk) begin
+    if (wr_cnt == 1535 && din_chn == CHANNEL) begin
+      wr_symbol <= wr_symbol + 1;
+    end else if (wr_run) begin
+      wr_symbol <= wr_symbol;
+    end else begin
+      wr_symbol <= 1'b0;
+    end
+  end
+
   // Write
 
   always_ff @(posedge clk) begin
-    wr_addr <= wr_cnt;
+    wr_addr <= {wr_symbol, wr_cnt};
   end
 
   always_ff @(posedge clk) begin
-    wr_en <= wr_run && (din_chn == CHANNEL);
+    wr_en <= wr_start || (wr_run && (din_chn == CHANNEL));
   end
 
   always_ff @(posedge clk) begin
-    wr_data <= {din_di, din_dr};
+    if (wr_start || (wr_run && (din_chn == CHANNEL))) begin
+      wr_data <= {din_di, din_dr};
+    end
   end
 
   // After buffer the required samples, send request
 
   always_ff @(posedge clk) begin
-    if (wr_cnt == 1536 * c_num_symbol_s - 1 && din_chn == CHANNEL) begin
+    if (wr_stop) begin
       ap_hdr <= c_header_s;
     end
   end
@@ -145,7 +163,7 @@ module prach_buffer_ch #(
   always_ff @(posedge clk) begin
     if (~rst_n) begin
       ap_req <= 1'b0;
-    end else if (wr_cnt == 1536 * c_num_symbol_s - 1 && din_chn == CHANNEL) begin
+    end else if (wr_stop) begin
       ap_req <= 1'b1;
     end else if (ap_ack) begin
       ap_req <= 1'b0;

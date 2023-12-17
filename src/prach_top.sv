@@ -162,7 +162,9 @@ module prach_top (
       for (genvar ant = 0; ant < 8; ant++) begin : g_ant
 
         always_ff @(posedge clk_eth_xran) begin
-          if (c_valid[cc][ant]) begin
+          if (~rst_eth_xran_n) begin
+            ctrl_fcw[cc][ant] <= '0;
+          end else if (c_valid[cc][ant]) begin
             ctrl_fcw[cc][ant] <= c_frequency_offset;
           end
         end

@@ -44,7 +44,7 @@ module prach_framer_cdc (
     output var [  7:0] tx_u_udCompHdr
 );
 
-  localparam int FifoWidth = 72;
+  localparam int FifoWidth = 66;
   localparam int FifoDepth = 2048;
 
   // FIFO
@@ -63,40 +63,28 @@ module prach_framer_cdc (
   assign avst_sink_ready = ~fifo_wr_full;
 
   // 2k x 64
-  async_fifo #(
-      .DATA_WIDTH_A           (FifoWidth),
-      .ADDR_WIDTH_A           ($clog2(FifoDepth) + 1),
-      .DATA_WIDTH_B           (FifoWidth),
-      .ADDR_WIDTH_B           ($clog2(FifoDepth) + 1),
-      .RDSYNC_DELAYPIPE       (2),
-      .WRSYNC_DELAYPIPE       (2),
-      .ENABLE_SHOWAHEAD       ("OFF"),
-      .UNDERFLOW_CHECKING     ("ON"),
-      .OVERFLOW_CHECKING      ("ON"),
-      .ADD_USEDW_MSB_BIT      ("ON"),
-      .WRITE_ACLR_SYNCH       ("OFF"),
-      .READ_ACLR_SYNCH        ("OFF"),
-      .ADD_RAM_OUTPUT_REGISTER("ON"),
-      .MAXIMUM_DEPTH          (FifoDepth),
-      .BYTE_EN_WIDTH          (FifoWidth/9),
-      .BYTE_SIZE              (9)
+  dcfifo #(
+      .lpm_width    (FifoWidth),
+      .lpm_numwords (FifoDepth),
+      .lpm_showahead("ON"),
+      .lpm_widthu   (11)
   ) u_data_fifo (
-      .aclr   (1'b0),
+      .aclr     (1'b0),
+      .eccstatus(  /* not used */),
       // Write
-      .wrclk  (clk_dsp),
-      .data   (fifo_wr_data),
-      .wrreq  (fifo_wr_req),
-      .byteena('1),
-      .wrfull (fifo_wr_full),
-      .wrempty(  /* not used */),
-      .wrusedw(  /* not used */),
+      .wrclk    (clk_dsp),
+      .wrreq    (fifo_wr_req),
+      .data     (fifo_wr_data),
+      .wrempty  (  /* not used */),
+      .wrfull   (fifo_wr_full),
+      .wrusedw  (  /* not used */),
       // Read
-      .rdclk  (clk_eth_xran),
-      .rdreq  (fifo_rd_req),
-      .rdfull (),
-      .rdempty(fifo_rd_empty),
-      .rdusedw(),
-      .q      (fifo_rd_data)
+      .rdclk    (clk_eth_xran),
+      .rdreq    (fifo_rd_req),
+      .q        (fifo_rd_data),
+      .rdempty  (fifo_rd_empty),
+      .rdfull   (),
+      .rdusedw  ()
   );
 
 

@@ -36,7 +36,7 @@ module prach_buffer (
   logic         ap_req       [3][8];
   logic         ap_ack       [3][8];
 
-  logic [ 10:0] rd_addr;
+  logic [ 11:0] rd_addr;
   logic         rd_en        [3][8];
   logic [ 31:0] rd_data      [3][8];
 

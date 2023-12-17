@@ -96,7 +96,7 @@ module prach_nco (
   // Phase Accumulator
 
   generate
-    for (genvar i = 0; i < 8; i++) begin : g_interleaved_channel
+    for (genvar i = 0; i < 8; i++) begin : g_ch
 
       always_ff @(posedge clk) begin
         fcw[i] <= ctrl_fcw[i];

@@ -3,8 +3,6 @@ from pathlib import Path
 import cocotb
 import numpy as np
 from cocotb.clock import Clock
-from cocotb.handle import SimHandleBase
-from cocotb.queue import Queue
 from cocotb.runner import get_runner
 from cocotb.triggers import ClockCycles, RisingEdge, Timer
 

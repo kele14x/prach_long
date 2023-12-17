@@ -27,7 +27,9 @@ module prach_buffer_cp_fifo #(
   dcfifo #(
       .lpm_width    (WIDTH),
       .lpm_numwords (DEPTH),
-      .lpm_showahead("ON")
+      .lpm_showahead("ON"),
+      .lpm_widthu   (4)
+
   ) u_dcfifo (
       .aclr     (~rst_n),
       .eccstatus(  /* not used */),

@@ -107,7 +107,8 @@ module prach_fft #(
   scfifo #(
       .lpm_width    (HDR_WIDTH),
       .lpm_numwords (16),
-      .lpm_showahead("ON")
+      .lpm_showahead("ON"),
+      .lpm_widthu   (4)
   ) u_scfifo (
       .clock       (clk),
       .aclr        (~rst_n),

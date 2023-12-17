@@ -113,7 +113,7 @@ module prach_conv_nco (
   );
 
   delay #(
-      .WIDTH(3),
+      .WIDTH(8),
       .DELAY(3)
   ) u_delay_chn (
       .clk  (clk),

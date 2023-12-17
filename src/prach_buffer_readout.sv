@@ -10,7 +10,7 @@ module prach_buffer_readout (
     input var          ap_req  [3][8],
     output var         ap_ack  [3][8],
     //
-    output var [ 10:0] rd_addr,
+    output var [ 11:0] rd_addr,
     output var         rd_en   [3][8],
     input var  [ 31:0] rd_data [3][8],
     // FFT
