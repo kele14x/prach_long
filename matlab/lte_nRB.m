@@ -1,5 +1,4 @@
 function nRB = lte_nRB(BW)
-% 	6, 9, 11, 15, 25, 27, 45, 50, 64, 75, 91, 100
 
 if strcmpi(BW, '5')
     nRB = 25;
